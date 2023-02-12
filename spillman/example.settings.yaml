@@ -1,0 +1,29 @@
+global:
+    loglevel: "INFO"
+    nwsid: ""
+    webdriver: "/usr/bin/chromedriver"
+    smtp:
+        host: ""
+        port: 
+        user:
+        pass:
+        from:
+        to:
+database:
+    schema: 
+    user:
+    password: 
+    host:
+    host_ro:
+spillman:
+    url:
+    touch_url:
+    user:
+    password:
+active911:
+    sendalerts: "Y"
+    update_delay: 60
+    snpp:
+        host: "snpp.active911.com"
+        port: 444
+        timeout: 5

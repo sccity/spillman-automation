@@ -1,0 +1,11 @@
+To setup a new agency to use this system with Active911:
+
+Ask to copy the parser from SCI Fire 38125 to the new agency.
+
+Update the JSON settings:
+
+JSONsettings-
+update silently
+Description(call type)- replace
+details(notes)- replace
+units- append_with_space_filter

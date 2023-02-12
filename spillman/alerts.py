@@ -1,0 +1,338 @@
+# **********************************************************
+# * CATEGORY  SOFTWARE
+# * GROUP     DISPATCH
+# * AUTHOR    LANCE HAYNIE <LHAYNIE@SCCITY.ORG>
+# * FILE      ALERTS.PY
+# **********************************************************
+# Spillman Digital Paging & Automation
+# Copyright Santa Clara City
+# Developed for Santa Clara - Ivins Fire & Rescue
+#Licensed under the Apache License, Version 2.0 (the "License");
+#you may not use this file except in compliance with the License.#
+#You may obtain a copy of the License at
+#http://www.apache.org/licenses/LICENSE-2.0
+#Unless required by applicable law or agreed to in writing, software
+#distributed under the License is distributed on an "AS IS" BASIS,
+#WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+#See the License for the specific language governing permissions and
+#limitations under the License.
+import sys, logging, traceback
+from datetime import datetime
+from re import search
+from telnetlib import Telnet
+from .settings import settings_data
+from .database import db, db_ro
+from .settings import version_data
+from .page import send_page
+from .log import setup_logger
+
+alertlog = setup_logger("alerts", "alerts")
+
+
+class alerts:
+    def __init__(self, agency, a911_id):
+        self.agency = agency.upper()
+        self.a911_id = a911_id
+        self.version = version_data["version"]
+
+    def incidents(self):
+        try:
+            try:
+                cursor = db_ro.cursor()
+                cursor.execute(
+                    f"select i.*, c.comment from incidents i left join comments c on i.callid = c.callid where i.alert_sent = 0 and i.unit is not null and i.agency = '{self.agency}'"
+                )
+
+            except:
+                cursor.close()
+                alertlog.error(traceback.format_exc())
+                return
+
+            if cursor.rowcount == 0:
+                cursor.close()
+                return
+
+            else:
+                try:
+                    results = cursor.fetchall()
+                    cursor.close()
+                    incidents_list = [row for row in results if row[5] is not None]
+
+                    for row in incidents_list:
+                        self.send_incident(
+                            row[1],
+                            row[3],
+                            row[5],
+                            row[6],
+                            row[7],
+                            row[8],
+                            row[9],
+                            row[10],
+                            row[11],
+                            row[13],
+                        )
+
+                except Exception as e:
+                    cursor.close()
+                    alertlog.error(traceback.format_exc())
+                    return
+
+        except Exception as e:
+            cursor.close()
+            alertlog.error(traceback.format_exc())
+            return
+
+    def comments(self):
+        try:
+            try:
+                cursor = db_ro.cursor()
+                cursor.execute(
+                    f"""select c.callid, c.comment from comments c 
+                        left join incidents i on (c.callid = i.callid and c.agency = i.agency) 
+                        where c.processed = 0 and c.agency = '{self.agency}' and i.uuid is not null and i.unit is not null"""
+                )
+
+            except:
+                cursor.close()
+                alertlog.error(traceback.format_exc())
+                return
+
+            if cursor.rowcount == 0:
+                cursor.close()
+                return
+
+            else:
+                try:
+                    results = cursor.fetchall()
+                    cursor.close()
+
+                    for row in results:
+                        self.send_comment(row[0], row[1])
+
+                except Exception as e:
+                    cursor.close()
+                    alertlog.error(traceback.format_exc())
+                    return
+
+        except Exception as e:
+            cursor.close()
+            alertlog.error(traceback.format_exc())
+            return
+
+    def send_incident(
+        self, callid, nature, unit, city, zone, address, gps_x, gps_y, date, comment
+    ):
+
+        if unit is None:
+            return
+
+        elif unit == "":
+            return
+
+        elif unit == " ":
+            return
+
+        elif address is None:
+            return
+
+        elif nature is None:
+            return
+
+        elif comment is None:
+            comment = (
+                "CAD COMMENTS PENDING<CRLF><CRLF>"
+                + "Report an Issue:<CRLF>"
+                + "https://help.scifr.net/index.php?a=add&catid=2&custom1="
+                + self.agency
+                + "&custom2="
+                + callid
+                + "<CRLF><CRLF>Spillman Automation: v"
+                + self.version
+                + "<CRLF>Copyright Santa Clara City (UT)<CRLF>All Rights Reserved"
+            )
+
+        else:
+            comment = comment
+
+        page = f"""CALLID: {callid} CALL: {nature} GPS: {gps_y}, {gps_x} PLACE: {address} CITY: {city} ZONE: {zone} UNIT: {unit} DATE: {date} COMMENT:{comment}"""
+        return_code = send_page(page, self.a911_id)
+
+        if return_code == 0:
+            try:
+                try:
+                    if "cursor" in locals():
+                        try:
+                            cursor.close()
+                        except:
+                            alertlog.warning(traceback.format_exc())
+                    else:
+                        cursor = db.cursor()
+
+                    try:
+                        cursor.execute(
+                            f"update incidents set alert_sent = 1 where callid = '{callid}' and agency = '{self.agency}'"
+                        )
+                    except Exception as e:
+                        error = format(str(e))
+                        if error.find("'Lock wait timeout exceeded'") != -1:
+                            cursor.close()
+                            cursor = db.cursor()
+                            cursor.execute(
+                                f"update incidents set alert_sent = 1 where callid = '{callid}' and agency = '{self.agency}'"
+                            )
+                        else:
+                            return
+
+                    db.commit()
+                    cursor.close()
+
+                except:
+                    cursor.close()
+                    alertlog.error(traceback.format_exc())
+                    return
+
+                if comment is not None:
+                    try:
+                        cursor = db.cursor()
+                        cursor.execute(
+                            f"update comments set processed = 1 where callid = '{callid}' and agency = '{self.agency}'"
+                        )
+                        db.commit()
+                        cursor.close()
+
+                    except:
+                        cursor.close()
+                        alertlog.error(traceback.format_exc())
+                        return
+
+            except Exception as e:
+                cursor.close()
+                alertlog.error(traceback.format_exc())
+                return
+
+    def send_comment(self, callid, comment):
+        try:
+            cursor = db_ro.cursor()
+            cursor.execute(
+                f"select * from incidents where callid = '{callid}' and agency = '{self.agency}' and unit is not null"
+            )
+
+        except Exception as e:
+            cursor.close()
+            alertlog.error(traceback.format_exc())
+            return
+
+        if cursor.rowcount == 0:
+            cursor.close()
+            return
+
+        else:
+            results = cursor.fetchone()
+            cursor.close()
+            db_unit = repr(results[5])
+            db_nature = repr(results[3])
+            gps_y = repr(results[10])
+            gps_x = repr(results[9])
+            address = repr(results[8])
+            city = repr(results[6])
+            zone = repr(results[7])
+            date = results[11]
+
+        unit_list = db_unit.replace("'", "")
+
+        if (
+            (unit_list is None)
+            or (unit_list == "")
+            or (db_unit is None)
+            or (unit_list == "unit_list")
+        ):
+            try:
+                cursor = db.cursor()
+                cursor.execute(
+                    f"update comments set processed = 1 where callid = '{callid}' and agency = '{self.agency}'"
+                )
+                db.commit()
+                cursor.close()
+
+            except Exception as e:
+                cursor.close()
+                alertlog.error(traceback.format_exc())
+                return
+
+        nature = db_nature.replace("'", "")
+
+        page = f"""CALLID: {callid} CALL: {nature} GPS: {gps_y}, {gps_x} PLACE: {address} CITY: {city} ZONE: {zone} UNIT: {unit_list} DATE: {date} COMMENT:{comment}"""
+
+        return_code = send_page(page, self.a911_id)
+
+        if return_code == 0:
+            try:
+                cursor = db.cursor()
+                cursor.execute(
+                    f"update comments set processed = 1 where callid = '{callid}' and agency = '{self.agency}'"
+                )
+                db.commit()
+                cursor.close()
+
+            except Exception as e:
+                cursor.close()
+                alertlog.error(traceback.format_exc())
+                return
+
+        else:
+            cursor.close()
+            return
+
+    @staticmethod
+    def send(
+        agency, callid, nature, unit, city, zone, address, gps_x, gps_y, date, comment
+    ):
+        page = f"""CALLID: {callid} CALL: {nature} GPS: {gps_y}, {gps_x} PLACE: {address} CITY: {city} ZONE: {zone} UNIT: {unit} DATE: {date} COMMENT:{comment}"""
+
+        if unit is None:
+            return
+
+        elif unit == "":
+            return
+
+        elif unit == " ":
+            return
+
+        elif address is None:
+            return
+
+        elif nature is None:
+            return
+
+        elif comment is None:
+            comment = (
+                "CAD COMMENTS PENDING<CRLF><CRLF>"
+                + "Report an Issue:<CRLF>"
+                + "https://help.scifr.net/index.php?a=add&catid=2&custom1="
+                + self.agency
+                + "&custom2="
+                + callid
+                + "<CRLF><CRLF>Spillman Automation: v"
+                + self.version
+                + "<CRLF>Copyright Santa Clara City (UT)<CRLF>All Rights Reserved"
+            )
+
+        else:
+            comment = comment
+
+        try:
+            cursor = db_ro.cursor()
+            cursor.execute(
+                f"SELECT active911_id from agency where agency_id = '{agency}'"
+            )
+            db_response = cursor.fetchone()
+            cursor.close()
+
+        except Exception as e:
+            cursor.close()
+            alertlog.error(traceback.format_exc())
+            return
+
+        a911_id = db_response[0]
+        send_page(page, a911_id)
+        return

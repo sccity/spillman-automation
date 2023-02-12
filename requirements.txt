@@ -1,0 +1,11 @@
+lxml
+psutil
+PyMySQL
+PyYAML
+requests
+selenium
+webdriver_manager
+xmltodict
+packaging
+joblib
+uuid

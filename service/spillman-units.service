@@ -1,0 +1,13 @@
+[Unit]
+Description=Spillman Automation - Units
+After=syslog.target network.target
+
+[Service]
+WorkingDirectory=/opt/spillman-automation
+ExecStart=/usr/bin/python3 /opt/spillman-automation/app.py --units
+
+Restart=always
+RestartSec=120
+
+[Install]
+WantedBy=multi-user.target
