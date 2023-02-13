@@ -155,7 +155,8 @@ if len(args) > 1:
     elif arg1.lower() == "--cleanup":
         s.cleanup.main()
 
-    elif arg1.lower() == "--check_config":
+    elif arg1.lower() == "--check-config":
+        print("Just making sure everything works!")
         syslog.info("Just making sure everything works!")
 
     else:
