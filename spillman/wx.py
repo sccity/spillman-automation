@@ -16,7 +16,7 @@
 # WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
 # See the License for the specific language governing permissions and
 # limitations under the License.
-import logging, requests, xmltodict, traceback
+import requests, xmltodict, traceback
 import uuid
 from lxml import etree
 from datetime import datetime
@@ -71,8 +71,8 @@ def main():
                     expires = node.text
 
                 elif node.tag.find("id") > -1:
-                    id = node.text
-                    id = id.split("SLC.", 1)[1]
+                    msgid = node.text
+                    msgid = msgid.split("SLC.", 1)[1]
 
         except IndexError:
             return
@@ -134,8 +134,8 @@ def main():
                 alert_sent)
             values(
                 '{unique_id}',
-                '{agency_id}{id}',
-                '{agency_id}{id}',
+                '{agency_id}{msgid}',
+                '{agency_id}{msgid}',
                 '{nature}',
                 '{agency_id}',
                 'NWS',
@@ -163,7 +163,7 @@ def main():
                 if error.find("Duplicate entry") != -1:
                     err.debug(
                         "Incident already exists in alert database for "
-                        + id
+                        + msgid
                         + " reported "
                         + sql_date
                         + "."
@@ -187,7 +187,7 @@ def main():
             values(
                 '{unique_id}',
                 '{agency_id}',
-                '{agency_id}{id}',
+                '{agency_id}{msgid}',
                 '{comment}',
                 1,
                 '{sql_date}');
