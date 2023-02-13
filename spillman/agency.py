@@ -16,7 +16,7 @@
 # WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
 # See the License for the specific language governing permissions and
 # limitations under the License.
-import json, logging, requests, xmltodict, traceback
+import logging, requests, xmltodict, traceback
 import spillman as s
 from .database import connect_read
 from .log import setup_logger

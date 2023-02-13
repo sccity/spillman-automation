@@ -16,7 +16,7 @@
 # WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
 # See the License for the specific language governing permissions and
 # limitations under the License.
-import json, logging, xmltodict, traceback, collections, uuid
+import json, xmltodict, traceback, collections, uuid
 import spillman as s
 from urllib.request import urlopen
 from .settings import settings_data
@@ -71,10 +71,10 @@ class incidents:
         try:
             try:
                 response = urlopen(api)
-                input = json.loads(response.read())
+                input_json = json.loads(response.read())
                 calls = [
                     call
-                    for call in input
+                    for call in input_json
                     if (call["status"] != "RCVD")
                     and (call["status"] != "ASSGN")
                     and (call["status"] != "ONRPT")
@@ -186,7 +186,7 @@ class incidents:
                         db_ro.close()
                         city = {active_calls["city"]}
 
-                except Exception as e:
+                except:
                     cursor.close()
                     db_ro.close()
                     err.error(traceback.format_exc())
@@ -540,11 +540,6 @@ class incidents:
                     call_type = active_calls["type"]
 
                     try:
-                        status = active_calls["status"]
-                    except:
-                        status = ""
-
-                    try:
                         db_ro = connect_read()
                         cursor = db_ro.cursor()
                         cursor.execute(
@@ -577,9 +572,7 @@ class incidents:
 
                         except KeyError:
                             try:
-                                cursor.execute(
-                                    f"SELECT name from cities where abbr = 'WCO'"
-                                )
+                                cursor.execute("SELECT name from cities where abbr = 'WCO'")
 
                             except:
                                 cursor.close()
@@ -616,7 +609,7 @@ class incidents:
                     try:
                         units = units.replace(" ", ",")
                     except:
-                        units is None
+                        units = ""
 
                     mutual_aid_units = ""
 
@@ -681,7 +674,7 @@ class incidents:
                             try:
                                 mutual_aid_units = mutual_aid_units.replace(",", " ")
                             except:
-                                mutual_aid_units is None
+                                mutual_aid_units = ""
 
                             sql = f"update incidents set unit = '{mutual_aid_units}' where callid = '{callid}' and agency = '{self.agency}';"
                             cursor.execute(sql)
