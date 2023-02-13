@@ -161,7 +161,7 @@ class status:
                         callid = (
                             unit
                             + "-"
-                            + f"{stime[15:19]}-{stime[9:11]}-{stime[12:14]}{stime[0:8]}"
+                            + f"{time_str]}"
                         )
 
                         alerts.send(
