@@ -7,15 +7,15 @@
 # Spillman Digital Paging & Automation
 # Copyright Santa Clara City
 # Developed for Santa Clara - Ivins Fire & Rescue
-#Licensed under the Apache License, Version 2.0 (the "License");
-#you may not use this file except in compliance with the License.#
-#You may obtain a copy of the License at
-#http://www.apache.org/licenses/LICENSE-2.0
-#Unless required by applicable law or agreed to in writing, software
-#distributed under the License is distributed on an "AS IS" BASIS,
-#WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
-#See the License for the specific language governing permissions and
-#limitations under the License.
+# Licensed under the Apache License, Version 2.0 (the "License");
+# you may not use this file except in compliance with the License.#
+# You may obtain a copy of the License at
+# http://www.apache.org/licenses/LICENSE-2.0
+# Unless required by applicable law or agreed to in writing, software
+# distributed under the License is distributed on an "AS IS" BASIS,
+# WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+# See the License for the specific language governing permissions and
+# limitations under the License.
 import sys, json, logging, xmltodict, traceback, requests
 import uuid, re
 from urllib.request import urlopen
@@ -26,13 +26,13 @@ from .settings import version_data
 from .database import connect, connect_read
 from .log import setup_logger
 
-commentlog = setup_logger("comments", "comments")
+err = setup_logger("comments", "comments")
 
 
 class comments:
     def __init__(self, agency):
         self.version = version_data["version"]
-        self.env = version_data["env"]
+        self.env = settings_data["global"]["env"]
         self.api_url = settings_data["spillman-api"]["url"]
         self.api_token = settings_data["spillman-api"]["token"]
         self.delay = settings_data["active911"]["update_delay"]
@@ -41,14 +41,14 @@ class comments:
 
     def get(self, calls):
         if type(calls) == dict:
-            commentlog.debug("Processing Comments for Call: " + calls["callid"])
+            err.debug("Processing Comments for Call: " + calls["callid"])
             current_callid = calls["callid"]
 
             if calls["agency"] == self.agency:
                 self.process(calls["callid"])
 
             else:
-                commentlog.debug(current_callid + " is not in agency: " + agency)
+                err.debug(current_callid + " is not in agency: " + agency)
 
         else:
             try:
@@ -62,7 +62,7 @@ class comments:
                     self.process(active_calls["call_id"])
 
             except Exception as e:
-                commentlog.error(traceback.format_exc())
+                err.error(traceback.format_exc())
                 return
 
     def process(self, callid):
@@ -85,17 +85,18 @@ class comments:
         except Exception as e:
             error = format(str(e))
             if error.find("'NoneType'") != -1:
-                commentlog.debug(f"No CAD comments for Call ID: {callid}")
+                err.debug(f"No CAD comments for Call ID: {callid}")
                 return
 
             else:
-                commentlog.error(traceback.format_exc())
+                err.error(traceback.format_exc())
                 return
+
         try:
             units = self.units.get(callid)
         except:
             units = "Unknown"
-            
+
         if units.find("dict") != -1:
             units = "Unknown"
 
@@ -192,7 +193,7 @@ class comments:
 
         if cad_comments.find("A911-STOP") != -1:
             cad_comments = "CAD COMMENTS LOCKED"
-            commentlog.debug("Lockout command found for " + callid)
+            err.debug("Lockout command found for " + callid)
 
         if self.env == "DEV":
             cad_comment = (
@@ -216,7 +217,7 @@ class comments:
             except Exception as e:
                 cursor.close()
                 db_ro.close()
-                commentlog.error(traceback.format_exc())
+                err.error(traceback.format_exc())
                 return
 
             if cursor.rowcount == 0:
@@ -225,49 +226,33 @@ class comments:
                 try:
                     current_time = datetime.now()
                     unique_id = uuid.uuid1()
-                    sql = f"""
-                    INSERT INTO
-                    comments(
-                        uuid,
-                        agency,
-                        callid,
-                        comment,
-                        processed,
-                        updated)
-                    values(
-                        '{unique_id}',
-                        '{self.agency}',
-                        '{callid}',
-                        '{cad_comment}',
-                        0,
-                        '{current_time}');
-                    """
+                    sql = f"INSERT INTO comments(uuid,agency,callid,comment,processed,updated) values('{unique_id}','{self.agency}','{callid}','{cad_comment}',0,'{current_time}');"
 
                     try:
                         db = connect()
                         cursor = db.cursor()
                         cursor.execute(sql)
-                        
+
                     except Exception as e:
                         cursor.close()
                         db.close()
                         error = format(str(e))
 
                         if error.find("Duplicate entry") != -1:
-                            commentlog.debug(
+                            err.debug(
                                 "CAD comment already exists in alert database for "
                                 + callid
                             )
                         else:
-                            commentlog.error(traceback.format_exc())
+                            err.error(traceback.format_exc())
                             return
-                          
-                        db.commit()
-                        cursor.close()
-                        db.close()
+
+                    db.commit()
+                    cursor.close()
+                    db.close()
 
                 except Exception as e:
-                    commentlog.error(traceback.format_exc())
+                    err.error(traceback.format_exc())
                     return
 
             else:
@@ -282,7 +267,7 @@ class comments:
                     except Exception as e:
                         cursor.close()
                         db_ro.close()
-                        commentlog.error(traceback.format_exc())
+                        err.error(traceback.format_exc())
                         return
 
                     results = cursor.fetchone()
@@ -298,12 +283,10 @@ class comments:
                     time_diff_seconds = time_diff.total_seconds()
 
                     if re.sub(r"\W+", "", db_comment) == re.sub(r"\W+", "", comment):
-                        commentlog.debug("No new CAD comments for " + callid)
+                        err.debug("No new CAD comments for " + callid)
 
                     elif time_diff_seconds < self.delay:
-                        commentlog.debug(
-                            "Waiting to process alert for comments for " + callid
-                        )
+                        err.debug("Waiting to process alert for comments for " + callid)
 
                     elif re.sub(r"\W+", "", db_comment) != re.sub(r"\W+", "", comment):
                         try:
@@ -316,7 +299,7 @@ class comments:
                         except Exception as e:
                             cursor.close()
                             db.close()
-                            commentlog.error(traceback.format_exc())
+                            err.error(traceback.format_exc())
                             return
 
                         db.commit()
@@ -324,13 +307,13 @@ class comments:
                         db.close()
 
                     else:
-                        commentlog.error(traceback.format_exc())
+                        err.error(traceback.format_exc())
                         return
 
                 except Exception as e:
-                    commentlog.error(traceback.format_exc())
+                    err.error(traceback.format_exc())
                     return
 
         except Exception as e:
-            commentlog.error(traceback.format_exc())
+            err.error(traceback.format_exc())
             return

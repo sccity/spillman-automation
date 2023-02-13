@@ -7,15 +7,15 @@
 # Spillman Digital Paging & Automation
 # Copyright Santa Clara City
 # Developed for Santa Clara - Ivins Fire & Rescue
-#Licensed under the Apache License, Version 2.0 (the "License");
-#you may not use this file except in compliance with the License.#
-#You may obtain a copy of the License at
-#http://www.apache.org/licenses/LICENSE-2.0
-#Unless required by applicable law or agreed to in writing, software
-#distributed under the License is distributed on an "AS IS" BASIS,
-#WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
-#See the License for the specific language governing permissions and
-#limitations under the License.
+# Licensed under the Apache License, Version 2.0 (the "License");
+# you may not use this file except in compliance with the License.#
+# You may obtain a copy of the License at
+# http://www.apache.org/licenses/LICENSE-2.0
+# Unless required by applicable law or agreed to in writing, software
+# distributed under the License is distributed on an "AS IS" BASIS,
+# WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+# See the License for the specific language governing permissions and
+# limitations under the License.
 import sys, logging, traceback
 from datetime import datetime
 from re import search
@@ -26,7 +26,7 @@ from .settings import version_data
 from .page import send_page
 from .log import setup_logger
 
-alertlog = setup_logger("alerts", "alerts")
+err = setup_logger("alerts", "alerts")
 
 
 class alerts:
@@ -47,7 +47,7 @@ class alerts:
             except:
                 cursor.close()
                 db_ro.close()
-                alertlog.error(traceback.format_exc())
+                err.error(traceback.format_exc())
                 return
 
             if cursor.rowcount == 0:
@@ -79,13 +79,13 @@ class alerts:
                 except Exception as e:
                     cursor.close()
                     db_ro.close()
-                    alertlog.error(traceback.format_exc())
+                    err.error(traceback.format_exc())
                     return
 
         except Exception as e:
             cursor.close()
             db_ro.close()
-            alertlog.error(traceback.format_exc())
+            err.error(traceback.format_exc())
             return
 
     def comments(self):
@@ -94,15 +94,13 @@ class alerts:
                 db_ro = connect_read()
                 cursor = db_ro.cursor()
                 cursor.execute(
-                    f"""select c.callid, c.comment from comments c 
-                        left join incidents i on (c.callid = i.callid and c.agency = i.agency) 
-                        where c.processed = 0 and c.agency = '{self.agency}' and i.uuid is not null and i.unit is not null"""
+                    f"select c.callid, c.comment from comments c left join incidents i on (c.callid = i.callid and c.agency = i.agency) where c.processed = 0 and i.alert_sent = 1 and c.agency = '{self.agency}' and i.uuid is not null and i.unit is not null"
                 )
 
             except:
                 cursor.close()
                 db_ro.close()
-                alertlog.error(traceback.format_exc())
+                err.error(traceback.format_exc())
                 return
 
             if cursor.rowcount == 0:
@@ -122,19 +120,18 @@ class alerts:
                 except Exception as e:
                     cursor.close()
                     db_ro.close()
-                    alertlog.error(traceback.format_exc())
+                    err.error(traceback.format_exc())
                     return
 
         except Exception as e:
             cursor.close()
             db_ro.close()
-            alertlog.error(traceback.format_exc())
+            err.error(traceback.format_exc())
             return
 
     def send_incident(
         self, callid, nature, unit, city, zone, address, gps_x, gps_y, date, comment
     ):
-
         if unit is None:
             return
 
@@ -177,7 +174,7 @@ class alerts:
                             cursor.close()
                             db_ro.close()
                         except:
-                            alertlog.warning(traceback.format_exc())
+                            err.warning(traceback.format_exc())
                     else:
                         db = connect()
                         cursor = db.cursor()
@@ -186,12 +183,13 @@ class alerts:
                         cursor.execute(
                             f"update incidents set alert_sent = 1 where callid = '{callid}' and agency = '{self.agency}'"
                         )
+
                     except Exception as e:
                         error = format(str(e))
                         if error.find("'Lock wait timeout exceeded'") != -1:
                             cursor.close()
                             db.close()
-                            
+
                             db = connect()
                             cursor = db.cursor()
                             cursor.execute(
@@ -209,7 +207,7 @@ class alerts:
                 except:
                     cursor.close()
                     db.close()
-                    alertlog.error(traceback.format_exc())
+                    err.error(traceback.format_exc())
                     return
 
                 if comment is not None:
@@ -226,13 +224,13 @@ class alerts:
                     except:
                         cursor.close()
                         db.close()
-                        alertlog.error(traceback.format_exc())
+                        err.error(traceback.format_exc())
                         return
 
             except Exception as e:
                 cursor.close()
                 db.close()
-                alertlog.error(traceback.format_exc())
+                err.error(traceback.format_exc())
                 return
 
     def send_comment(self, callid, comment):
@@ -246,7 +244,7 @@ class alerts:
         except Exception as e:
             cursor.close()
             db_ro.close()
-            alertlog.error(traceback.format_exc())
+            err.error(traceback.format_exc())
             return
 
         if cursor.rowcount == 0:
@@ -287,7 +285,7 @@ class alerts:
             except Exception as e:
                 cursor.close()
                 db.close()
-                alertlog.error(traceback.format_exc())
+                err.error(traceback.format_exc())
                 return
 
         nature = db_nature.replace("'", "")
@@ -310,7 +308,7 @@ class alerts:
             except Exception as e:
                 cursor.close()
                 db.close()
-                alertlog.error(traceback.format_exc())
+                err.error(traceback.format_exc())
                 return
 
         else:
@@ -368,7 +366,7 @@ class alerts:
         except Exception as e:
             cursor.close()
             db_ro.close()
-            alertlog.error(traceback.format_exc())
+            err.error(traceback.format_exc())
             return
 
         a911_id = db_response[0]

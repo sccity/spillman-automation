@@ -7,15 +7,15 @@
 # Spillman Digital Paging & Automation
 # Copyright Santa Clara City
 # Developed for Santa Clara - Ivins Fire & Rescue
-#Licensed under the Apache License, Version 2.0 (the "License");
-#you may not use this file except in compliance with the License.#
-#You may obtain a copy of the License at
-#http://www.apache.org/licenses/LICENSE-2.0
-#Unless required by applicable law or agreed to in writing, software
-#distributed under the License is distributed on an "AS IS" BASIS,
-#WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
-#See the License for the specific language governing permissions and
-#limitations under the License.
+# Licensed under the Apache License, Version 2.0 (the "License");
+# you may not use this file except in compliance with the License.#
+# You may obtain a copy of the License at
+# http://www.apache.org/licenses/LICENSE-2.0
+# Unless required by applicable law or agreed to in writing, software
+# distributed under the License is distributed on an "AS IS" BASIS,
+# WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+# See the License for the specific language governing permissions and
+# limitations under the License.
 import sys, logging, traceback
 from datetime import datetime
 from re import search
@@ -24,7 +24,7 @@ from .settings import settings_data
 from .database import db
 from .log import setup_logger
 
-pagelog = setup_logger("page", "page")
+err = setup_logger("page", "page")
 
 sendalerts = settings_data["active911"]["sendalerts"]
 
@@ -37,11 +37,11 @@ def send_page(page, a911_id):
     exit = f"exit"
 
     if a911_id is None:
-        pagelog.warning("Missing Active911 ID!")
+        err.warning("Missing Active911 ID!")
         return
 
     if sendalerts == "N":
-        pagelog.debug("Page Message: " + page)
+        err.info("Page Message: " + page)
         return
 
     with Telnet(
@@ -71,7 +71,7 @@ def send_page(page, a911_id):
             tn.write(exit.encode("utf-8") + b"\r\n")
 
         except Exception as e:
-            pagelog.error(traceback.format_exc())
+            err.error(traceback.format_exc())
             return_cd = 99
 
         return return_cd
