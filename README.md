@@ -25,8 +25,8 @@ In the settings.yaml file you will notice there are smtp, spillman, spillman API
 Will update this section soon!
 
 ## LICENSE
-Copyright (c) Santa Clara City UT\
-Developed for Sanata Clara - Ivins Fire & Rescue.
+Copyright (c) Santa Clara City UT
+Developed for Sanata Clara - Ivins Fire & Rescue
 
 Licensed under the Apache License, Version 2.0 (the "License");
 you may not use this file except in compliance with the License.
