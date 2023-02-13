@@ -16,7 +16,7 @@
 # WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
 # See the License for the specific language governing permissions and
 # limitations under the License.
-import json, logging, requests, xmltodict, traceback
+import logging, requests, xmltodict, traceback
 import uuid
 from lxml import etree
 from datetime import datetime
@@ -98,9 +98,7 @@ def main():
     try:
         db_ro = connect_read()
         cursor = db_ro.cursor()
-        cursor.execute(
-            f"select agency_id, agency_type, active911_id from agency where active = 1 and nws_alerts = 1"
-        )
+        cursor.execute("select agency_id, agency_type, active911_id from agency where active = 1 and nws_alerts = 1")
         agencies = list(cursor.fetchall())
         cursor.close()
         db_ro.close()

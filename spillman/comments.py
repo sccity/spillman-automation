@@ -16,7 +16,7 @@
 # WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
 # See the License for the specific language governing permissions and
 # limitations under the License.
-import sys, json, logging, xmltodict, traceback, requests
+import json, logging, xmltodict, traceback, requests
 import uuid, re
 from urllib.request import urlopen
 import spillman as s
@@ -138,7 +138,7 @@ class comments:
             elif error.find("'list index out of range'") != -1:
                 proqa_sr = str(
                     re.search(
-                        "ProQA Code [0-9]+[0-9]+[A-Za-z]+[0-9]+[0-9]+", comment
+                        "ProQA Code [0-9]+[0-9]+[A-Za-z]+[0-9]+[0-9]+", cad_comment
                     ).group()
                 )
                 response_cd = proqa_sr[13:14]

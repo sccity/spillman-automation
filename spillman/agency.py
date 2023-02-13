@@ -20,7 +20,6 @@ import sys, json, logging, requests, xmltodict, traceback
 import collections
 import spillman as s
 import urllib.request as urlreq
-from .settings import settings_data
 from .database import connect_read
 from .log import setup_logger
 
@@ -72,7 +71,7 @@ class agency:
         non_agency_calls = current_agency.other()
 
         if not non_agency_calls:
-            err.debug(f"No Active Other Agency Calls")
+            err.debug("No Active Other Agency Calls")
 
         else:
             current_agency.alerts(non_agency_calls)
