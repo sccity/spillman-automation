@@ -16,7 +16,7 @@
 # WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
 # See the License for the specific language governing permissions and
 # limitations under the License.
-import sys, os, time, traceback
+import sys, os, time
 import spillman as s
 from spillman.database import connect_read
 
@@ -97,7 +97,7 @@ if len(args) > 1:
             try:
                 db_ro = connect_read()
                 cursor = db_ro.cursor()
-                cursor.execute(f"select agency_id from agency where active = 1")
+                cursor.execute("select agency_id from agency where active = 1")
                 agencies = list(cursor.fetchall())
                 cursor.close()
                 db_ro.close()
