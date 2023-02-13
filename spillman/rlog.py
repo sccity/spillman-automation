@@ -23,7 +23,7 @@ from selenium.webdriver.chrome.service import Service
 from selenium.webdriver.common.by import By
 from selenium.webdriver.support.ui import Select
 from .settings import settings_data
-from .database import db_ro
+from .database import connect_read
 from .log import setup_logger
 
 rlogger = setup_logger("rlog", "rlog")
@@ -42,6 +42,7 @@ api_pwd = settings_data["spillman"]["password"]
 
 def rlog(rlog_unit, rlog_status, rlog_comment):
     try:
+        db_ro = connect_read()
         cursor = db_ro.cursor()
         cursor.execute(
             f"SELECT spillman_usr, spillman_pwd FROM units WHERE unit = '{rlog_unit}' and spillman_usr is not null and spillman_pwd is not null"
@@ -49,17 +50,20 @@ def rlog(rlog_unit, rlog_status, rlog_comment):
 
     except:
         cursor.close()
+        db_ro.close()
         rlogger.error(traceback.format_exc())
         return
 
     if cursor.rowcount == 0:
         cursor.close()
+        db_ro.close()
         rlog_user = api_usr
         rlog_pass = api_pwd
 
     else:
         results = cursor.fetchone()
         cursor.close()
+        db_ro.close()
         rlog_user = results[0]
         rlog_pass = results[1]
 
