@@ -20,7 +20,6 @@ import sys, logging, traceback
 from datetime import datetime
 from re import search
 from telnetlib import Telnet
-from .settings import settings_data
 from .database import connect, connect_read
 from .settings import version_data
 from .page import send_page

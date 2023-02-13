@@ -16,12 +16,11 @@
 # WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
 # See the License for the specific language governing permissions and
 # limitations under the License.
-import sys, logging, traceback
+import logging, traceback
 from datetime import datetime
 from re import search
 from telnetlib import Telnet
 from .settings import settings_data
-from .database import db
 from .log import setup_logger
 
 err = setup_logger("page", "page")
