@@ -7,22 +7,22 @@
 # Spillman Digital Paging & Automation
 # Copyright Santa Clara City
 # Developed for Santa Clara - Ivins Fire & Rescue
-#Licensed under the Apache License, Version 2.0 (the "License");
-#you may not use this file except in compliance with the License.#
-#You may obtain a copy of the License at
-#http://www.apache.org/licenses/LICENSE-2.0
-#Unless required by applicable law or agreed to in writing, software
-#distributed under the License is distributed on an "AS IS" BASIS,
-#WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
-#See the License for the specific language governing permissions and
-#limitations under the License.
+# Licensed under the Apache License, Version 2.0 (the "License");
+# you may not use this file except in compliance with the License.#
+# You may obtain a copy of the License at
+# http://www.apache.org/licenses/LICENSE-2.0
+# Unless required by applicable law or agreed to in writing, software
+# distributed under the License is distributed on an "AS IS" BASIS,
+# WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+# See the License for the specific language governing permissions and
+# limitations under the License.
 import sys, json, logging, requests, xmltodict, traceback
 from urllib.request import urlopen
 from .settings import settings_data
 from .database import connect, connect_read
 from .log import setup_logger
 
-unitlog = setup_logger("units", "units")
+err = setup_logger("units", "units")
 
 
 class units:
@@ -73,11 +73,11 @@ class units:
             except Exception as e:
                 error = format(str(e))
                 if error.find("'NoneType'") != -1:
-                    unitlog.debug(f"No paged units for {callid}")
+                    err.debug(f"No paged units for {callid}")
                     return
 
                 else:
-                    unitlog.error(traceback.format_exc())
+                    err.error(traceback.format_exc())
                     return
 
             unit_list = ""
@@ -107,7 +107,7 @@ class units:
                     return
 
             except Exception as e:
-                unitlog.error(traceback.format_exc())
+                err.error(traceback.format_exc())
                 return
 
             try:
@@ -136,7 +136,7 @@ class units:
                     return
 
                 except Exception as e:
-                    unitlog.error(traceback.format_exc())
+                    err.error(traceback.format_exc())
 
                 if db_unit is None:
                     try:
@@ -152,12 +152,12 @@ class units:
                     except Exception as e:
                         cursor.close()
                         db.close()
-                        unitlog.error(traceback.format_exc())
+                        err.error(traceback.format_exc())
                         return
 
                 else:
                     if db_unit == repr(unit_list):
-                        unitlog.debug("No new units for " + callid)
+                        err.debug("No new units for " + callid)
 
                     else:
                         try:
@@ -176,11 +176,11 @@ class units:
                             return
 
             except Exception as e:
-                unitlog.error(traceback.format_exc())
+                err.error(traceback.format_exc())
                 return
 
         except Exception as e:
-            unitlog.error(traceback.format_exc())
+            err.error(traceback.format_exc())
             return
 
     def get(self, callid):
@@ -208,11 +208,11 @@ class units:
             except Exception as e:
                 error = format(str(e))
                 if error.find("'NoneType'") != -1:
-                    unitlog.debug(f"No paged units for {callid}")
+                    err.debug(f"No paged units for {callid}")
                     return
 
                 else:
-                    unitlog.error(traceback.format_exc())
+                    err.error(traceback.format_exc())
                     return
 
             unit_list = ""
@@ -242,11 +242,11 @@ class units:
                     return
 
             except Exception as e:
-                unitlog.error(traceback.format_exc())
+                err.error(traceback.format_exc())
                 return
 
             return unit_list
 
         except Exception as e:
-            unitlog.error(traceback.format_exc())
+            err.error(traceback.format_exc())
             return
