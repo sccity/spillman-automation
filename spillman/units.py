@@ -19,7 +19,7 @@
 import sys, json, logging, requests, xmltodict, traceback
 from urllib.request import urlopen
 from .settings import settings_data
-from .database import db, db_ro
+from .database import connect, connect_read
 from .log import setup_logger
 
 unitlog = setup_logger("units", "units")
@@ -33,12 +33,15 @@ class units:
 
     def agency_units(self):
         try:
+            db_ro = connect_read()
             cursor = db_ro.cursor()
             cursor.execute(f"select unit from units where agency = '{self.agency}'")
             cursor.close()
+            db_ro.close()
 
         except:
             cursor.close()
+            db_ro.close()
             return
 
         units = [list[0] for list in cursor.fetchall()]
@@ -109,15 +112,18 @@ class units:
 
             try:
                 try:
+                    db_ro = connect_read()
                     cursor = db_ro.cursor()
                     cursor.execute(
                         f"SELECT unit, uuid from incidents where callid = '{callid}' and agency = '{self.agency}'"
                     )
                     results = cursor.fetchone()
                     cursor.close()
+                    db_ro.close()
 
                 except:
                     cursor.close()
+                    db_ro.close()
                     return
 
                 try:
@@ -134,15 +140,18 @@ class units:
 
                 if db_unit is None:
                     try:
+                        db = connect()
                         cursor = db.cursor()
                         cursor.execute(
                             f"update incidents set unit = '{unit_list}' where uuid = '{db_uuid}'"
                         )
                         db.commit()
                         cursor.close()
+                        db.close()
 
                     except Exception as e:
                         cursor.close()
+                        db.close()
                         unitlog.error(traceback.format_exc())
                         return
 
@@ -152,15 +161,18 @@ class units:
 
                     else:
                         try:
+                            db = connect()
                             cursor = db.cursor()
                             cursor.execute(
                                 f"update incidents set unit = '{unit_list}', alert_sent = 0 where uuid = '{db_uuid}'"
                             )
                             db.commit()
                             cursor.close()
+                            db.close()
 
                         except:
                             cursor.close()
+                            db.close()
                             return
 
             except Exception as e:

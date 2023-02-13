@@ -23,7 +23,7 @@ from datetime import datetime
 from .rlog import rlog
 from .alerts import alerts
 from .settings import settings_data
-from .database import db, db_ro
+from .database import connect, connect_read
 from requests.packages.urllib3.exceptions import InsecureRequestWarning
 from .log import setup_logger
 
@@ -95,6 +95,7 @@ class status:
                     auto_rlog_flag = 0
 
                     try:
+                        db_ro = connect_read()
                         cursor = db_ro.cursor()
                         cursor.execute(
                             f"""SELECT auto_rlog_flag 
@@ -104,8 +105,10 @@ class status:
                         db_response = cursor.fetchone()
                         rlog_flag = db_response[0]
                         cursor.close()
+                        db_ro.close()
                     except:
                         cursor.close()
+                        db_ro.close()
                         statuslog.error(traceback.format_exc())
                         continue
 
@@ -115,6 +118,7 @@ class status:
                         pass
 
                     try:
+                        db_ro = connect_read()
                         cursor = db_ro.cursor()
                         cursor.execute(
                             f"""SELECT unit, cross_staff_flag, cross_staff_units, always_on_flag 
@@ -127,37 +131,45 @@ class status:
                         cross_staff_units = db_response[2]
                         always_on_flag = db_response[3]
                         cursor.close()
+                        db_ro.close()
 
                     except:
                         cursor.close()
+                        db_ro.close()
                         try:
+                            db = connect()
                             cursor = db.cursor()
                             cursor.execute(
                                 f"insert into units (unit,agency) values ('{unit}','{self.agency}')"
                             )
                             db.commit()
                             cursor.close()
+                            db.close()
                         except:
                             cursor.close()
+                            db.close()
                             statuslog.error(traceback.format_exc())
                             continue
 
                     try:
+                        db = connect()
                         cursor = db.cursor()
                         cursor.execute(
                             f"update units set status = '{status}', status_time = '{status_time}', status_desc = '{message}' where unit = '{unit}' and agency = '{self.agency}'"
                         )
                         db.commit()
                         cursor.close()
+                        db.close()
                     except:
                         cursor.close()
+                        db.close()
                         statuslog.error(traceback.format_exc())
                         continue
 
                     if (status == "ONAIR") and (hours >= 1):
                         statuslog.debug(f"{self.agency}:{unit} - ONAIR Timeout 1hr")
 
-                        # rlog(unit, "ONDT", "ONAIR TIMEOUT")
+                        rlog(unit, "ONDT", "ONAIR TIMEOUT")
                         callid = (
                             unit
                             + "-"
@@ -180,7 +192,7 @@ class status:
 
                     elif (status == "ONAIR") and ("AOA" not in message):
                         statuslog.debug(f"{unit} updated AOA description")
-                        # rlog(unit, "ONAIR", "AOA - AVAILABLE NOT IN QUARTERS")
+                        rlog(unit, "ONAIR", "AOA - AVAILABLE NOT IN QUARTERS")
 
                     elif (cross_staff_flag == 1) and (
                         status in "PAGED, ENRT, ARRVD, ARVDH, ENRTH, STAGE, ONAIR"
@@ -199,7 +211,7 @@ class status:
                             ):
                                 if c_stat != "XBSY":
                                     statuslog.debug(f"{cs_unit} set to XBSY")
-                                    # rlog(cs_unit, "XBSY", "CROSS STAFF W/" + unit)
+                                    rlog(cs_unit, "XBSY", "CROSS STAFF W/" + unit)
                                 else:
                                     statuslog.debug(f"{cs_unit} already XBSY")
 
@@ -216,7 +228,7 @@ class status:
 
                                 if c_stat == "XBSY":
                                     statuslog.debug(f"{unit} set to ONDT")
-                                    # rlog(cs_unit, "ONDT", "CROSS STAFF ADJUSTMENT")
+                                    rlog(cs_unit, "ONDT", "CROSS STAFF ADJUSTMENT")
                         except:
                             return
 

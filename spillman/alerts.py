@@ -21,7 +21,7 @@ from datetime import datetime
 from re import search
 from telnetlib import Telnet
 from .settings import settings_data
-from .database import db, db_ro
+from .database import connect, connect_read
 from .settings import version_data
 from .page import send_page
 from .log import setup_logger
@@ -38,6 +38,7 @@ class alerts:
     def incidents(self):
         try:
             try:
+                db_ro = connect_read()
                 cursor = db_ro.cursor()
                 cursor.execute(
                     f"select i.*, c.comment from incidents i left join comments c on i.callid = c.callid where i.alert_sent = 0 and i.unit is not null and i.agency = '{self.agency}'"
@@ -45,17 +46,20 @@ class alerts:
 
             except:
                 cursor.close()
+                db_ro.close()
                 alertlog.error(traceback.format_exc())
                 return
 
             if cursor.rowcount == 0:
                 cursor.close()
+                db_ro.close()
                 return
 
             else:
                 try:
                     results = cursor.fetchall()
                     cursor.close()
+                    db_ro.close()
                     incidents_list = [row for row in results if row[5] is not None]
 
                     for row in incidents_list:
@@ -74,17 +78,20 @@ class alerts:
 
                 except Exception as e:
                     cursor.close()
+                    db_ro.close()
                     alertlog.error(traceback.format_exc())
                     return
 
         except Exception as e:
             cursor.close()
+            db_ro.close()
             alertlog.error(traceback.format_exc())
             return
 
     def comments(self):
         try:
             try:
+                db_ro = connect_read()
                 cursor = db_ro.cursor()
                 cursor.execute(
                     f"""select c.callid, c.comment from comments c 
@@ -94,28 +101,33 @@ class alerts:
 
             except:
                 cursor.close()
+                db_ro.close()
                 alertlog.error(traceback.format_exc())
                 return
 
             if cursor.rowcount == 0:
                 cursor.close()
+                db_ro.close()
                 return
 
             else:
                 try:
                     results = cursor.fetchall()
                     cursor.close()
+                    db_ro.close()
 
                     for row in results:
                         self.send_comment(row[0], row[1])
 
                 except Exception as e:
                     cursor.close()
+                    db_ro.close()
                     alertlog.error(traceback.format_exc())
                     return
 
         except Exception as e:
             cursor.close()
+            db_ro.close()
             alertlog.error(traceback.format_exc())
             return
 
@@ -163,9 +175,11 @@ class alerts:
                     if "cursor" in locals():
                         try:
                             cursor.close()
+                            db_ro.close()
                         except:
                             alertlog.warning(traceback.format_exc())
                     else:
+                        db = connect()
                         cursor = db.cursor()
 
                     try:
@@ -176,42 +190,54 @@ class alerts:
                         error = format(str(e))
                         if error.find("'Lock wait timeout exceeded'") != -1:
                             cursor.close()
+                            db.close()
+                            
+                            db = connect()
                             cursor = db.cursor()
                             cursor.execute(
                                 f"update incidents set alert_sent = 1 where callid = '{callid}' and agency = '{self.agency}'"
                             )
+                            db.commit()
+                            db.close()
                         else:
                             return
 
                     db.commit()
                     cursor.close()
+                    db.close()
 
                 except:
                     cursor.close()
+                    db.close()
                     alertlog.error(traceback.format_exc())
                     return
 
                 if comment is not None:
                     try:
+                        db = connect()
                         cursor = db.cursor()
                         cursor.execute(
                             f"update comments set processed = 1 where callid = '{callid}' and agency = '{self.agency}'"
                         )
                         db.commit()
                         cursor.close()
+                        db.close()
 
                     except:
                         cursor.close()
+                        db.close()
                         alertlog.error(traceback.format_exc())
                         return
 
             except Exception as e:
                 cursor.close()
+                db.close()
                 alertlog.error(traceback.format_exc())
                 return
 
     def send_comment(self, callid, comment):
         try:
+            db_ro = connect_read()
             cursor = db_ro.cursor()
             cursor.execute(
                 f"select * from incidents where callid = '{callid}' and agency = '{self.agency}' and unit is not null"
@@ -219,11 +245,13 @@ class alerts:
 
         except Exception as e:
             cursor.close()
+            db_ro.close()
             alertlog.error(traceback.format_exc())
             return
 
         if cursor.rowcount == 0:
             cursor.close()
+            db_ro.close()
             return
 
         else:
@@ -247,15 +275,18 @@ class alerts:
             or (unit_list == "unit_list")
         ):
             try:
+                db = connect()
                 cursor = db.cursor()
                 cursor.execute(
                     f"update comments set processed = 1 where callid = '{callid}' and agency = '{self.agency}'"
                 )
                 db.commit()
                 cursor.close()
+                db.close()
 
             except Exception as e:
                 cursor.close()
+                db.close()
                 alertlog.error(traceback.format_exc())
                 return
 
@@ -267,20 +298,24 @@ class alerts:
 
         if return_code == 0:
             try:
+                db = connect()
                 cursor = db.cursor()
                 cursor.execute(
                     f"update comments set processed = 1 where callid = '{callid}' and agency = '{self.agency}'"
                 )
                 db.commit()
                 cursor.close()
+                db.close()
 
             except Exception as e:
                 cursor.close()
+                db.close()
                 alertlog.error(traceback.format_exc())
                 return
 
         else:
             cursor.close()
+            db.close()
             return
 
     @staticmethod
@@ -321,15 +356,18 @@ class alerts:
             comment = comment
 
         try:
+            db_ro = connect_read()
             cursor = db_ro.cursor()
             cursor.execute(
                 f"SELECT active911_id from agency where agency_id = '{agency}'"
             )
             db_response = cursor.fetchone()
             cursor.close()
+            db_ro.close()
 
         except Exception as e:
             cursor.close()
+            db_ro.close()
             alertlog.error(traceback.format_exc())
             return
 
