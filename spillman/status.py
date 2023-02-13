@@ -16,7 +16,7 @@
 # WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
 # See the License for the specific language governing permissions and
 # limitations under the License.
-import json, logging, requests, xmltodict, traceback
+import json, requests, xmltodict, traceback
 from urllib.request import urlopen
 from datetime import datetime
 from .rlog import rlog
@@ -229,7 +229,7 @@ class status:
                         err.error(traceback.format_exc())
                         return
 
-        except Exception as e:
+        except:
             err.error(traceback.format_exc())
             return
 
