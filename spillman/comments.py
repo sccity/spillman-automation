@@ -91,8 +91,13 @@ class comments:
             else:
                 commentlog.error(traceback.format_exc())
                 return
-
-        units = self.units.get(callid)
+        try:
+            units = self.units.get(callid)
+        except:
+            units = "Unknown"
+            
+        if units.find("dict") != -1:
+            units = "Unknown"
 
         try:
             units = units.replace(" ", ", ")
