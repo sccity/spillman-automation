@@ -1,4 +1,4 @@
-# Spillman Automation [![Codacy Badge](https://app.codacy.com/project/badge/Grade/83e20eb1d6d548199948bb26a47ce936)](https://www.codacy.com/gh/sccity/spillman-automation/dashboard?utm_source=github.com&amp;utm_medium=referral&amp;utm_content=sccity/spillman-automation&amp;utm_campaign=Badge_Grade)
+# Spillman Automation [![CircleCI](https://dl.circleci.com/status-badge/img/gh/sccity/spillman-automation/tree/master.svg?style=shield)](https://dl.circleci.com/status-badge/redirect/gh/sccity/spillman-automation/tree/master) [![Codacy Badge](https://app.codacy.com/project/badge/Grade/83e20eb1d6d548199948bb26a47ce936)](https://www.codacy.com/gh/sccity/spillman-automation/dashboard?utm_source=github.com&amp;utm_medium=referral&amp;utm_content=sccity/spillman-automation&amp;utm_campaign=Badge_Grade)
 
 The Spillman Automation program is an intermediary between Spillman and Active911, as well as other automatic functions. This program will not only push calls to Active911, but push CAD comments and refresh comments as they are entered. Furthermore, this program will handle radio log entries for cross staffed units. 
 
