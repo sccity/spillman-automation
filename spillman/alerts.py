@@ -16,10 +16,7 @@
 # WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
 # See the License for the specific language governing permissions and
 # limitations under the License.
-import sys, logging, traceback
-from datetime import datetime
-from re import search
-from telnetlib import Telnet
+import logging, traceback
 from .database import connect, connect_read
 from .settings import version_data
 from .page import send_page
@@ -75,13 +72,13 @@ class alerts:
                             row[13],
                         )
 
-                except Exception as e:
+                except:
                     cursor.close()
                     db_ro.close()
                     err.error(traceback.format_exc())
                     return
 
-        except Exception as e:
+        except:
             cursor.close()
             db_ro.close()
             err.error(traceback.format_exc())
