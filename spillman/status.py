@@ -157,7 +157,7 @@ class status:
                     if (status == "ONAIR") and (hours >= 1):
                         err.debug(f"{self.agency}:{unit} - ONAIR Timeout 1hr")
 
-                        rlog(unit, "ONDT", "ONAIR TIMEOUT")
+                        #(rlogunit, "ONDT", "ONAIR TIMEOUT")
                         callid = (unit + "-" + time_str)
 
                         alerts.send(
@@ -176,7 +176,7 @@ class status:
 
                     elif (status == "ONAIR") and ("AOA" not in message):
                         err.debug(f"{unit} updated AOA description")
-                        rlog(unit, "ONAIR", "AOA - AVAILABLE NOT IN QUARTERS")
+                        #(rlogunit, "ONAIR", "AOA - AVAILABLE NOT IN QUARTERS")
 
                     elif (cross_staff_flag == 1) and (
                         status in "PAGED, ENRT, ARRVD, ARVDH, ENRTH, STAGE, ONAIR"
@@ -195,7 +195,7 @@ class status:
                             ):
                                 if c_stat != "XBSY":
                                     err.debug(f"{cs_unit} set to XBSY")
-                                    rlog(cs_unit, "XBSY", "CROSS STAFF W/" + unit)
+                                    #(rlogcs_unit, "XBSY", "CROSS STAFF W/" + unit)
                                 else:
                                     err.debug(f"{cs_unit} already XBSY")
 
@@ -212,7 +212,7 @@ class status:
 
                                 if c_stat == "XBSY":
                                     err.debug(f"{unit} set to ONDT")
-                                    rlog(cs_unit, "ONDT", "CROSS STAFF ADJUSTMENT")
+                                    #(rlogcs_unit, "ONDT", "CROSS STAFF ADJUSTMENT")
                         except:
                             return
 
