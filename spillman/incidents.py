@@ -228,14 +228,11 @@ class incidents:
                 reported,
             )
 
-            if (unit[0:3] == "PRE") or ("*" in unit):
+            if (unit[0:3] == "PRE"):
                 try:
                     db = connect()
                     cursor = db.cursor()
-                    sql = ""
-                    sql = f"""update incidents 
-                          set unit = '{unit}' 
-                          where callid = '{callid}' and agency = '{self.agency}';"""
+                    sql = f"update incidents set unit = '{unit}' where callid = '{callid}' and agency = '{self.agency}';"
                     cursor.execute(sql)
 
                 except:
