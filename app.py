@@ -99,7 +99,6 @@ if len(args) > 1:
                 cursor = db_ro.cursor()
                 cursor.execute(f"select agency_id from agency where active = 1")
                 agencies = list(cursor.fetchall())
-                db.commit()
                 cursor.close()
                 db_ro.close()
 
