@@ -16,7 +16,7 @@
 # WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
 # See the License for the specific language governing permissions and
 # limitations under the License.
-import json, logging, requests, xmltodict, traceback
+import json, requests, xmltodict, traceback
 from urllib.request import urlopen
 from .settings import settings_data
 from .database import connect, connect_read
@@ -135,7 +135,7 @@ class units:
                     db_unit is None
                     return
 
-                except Exception as e:
+                except:
                     err.error(traceback.format_exc())
 
                 if db_unit is None:
@@ -188,10 +188,10 @@ class units:
         try:
             try:
                 response = urlopen(api)
-                input = json.loads(response.read())
+                input_json = json.loads(response.read())
                 units = [
                     unit
-                    for unit in input
+                    for unit in input_json
                     if (unit["status"] != "CMPLT")
                     and (unit["status"] != "ONDT")
                     and (unit["status"] != "8")

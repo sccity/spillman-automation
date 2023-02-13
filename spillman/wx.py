@@ -16,7 +16,7 @@
 # WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
 # See the License for the specific language governing permissions and
 # limitations under the License.
-import requests, xmltodict, traceback
+import requests, traceback
 import uuid
 from lxml import etree
 from datetime import datetime
@@ -91,7 +91,7 @@ def main():
             now = datetime.now()
             sql_date = now.strftime("%Y-%m-%d %H:%M:%S")
 
-        except Exception as e:
+        except:
             err.error(traceback.format_exc())
             return
 

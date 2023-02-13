@@ -16,7 +16,7 @@
 # WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
 # See the License for the specific language governing permissions and
 # limitations under the License.
-import json, xmltodict, traceback, requests
+import json, traceback, requests
 import uuid, re
 from urllib.request import urlopen
 import spillman as s
@@ -214,7 +214,7 @@ class comments:
                     f"SELECT * from comments where callid = '{callid}' and agency = '{self.agency}'"
                 )
 
-            except Exception as e:
+            except:
                 cursor.close()
                 db_ro.close()
                 err.error(traceback.format_exc())
