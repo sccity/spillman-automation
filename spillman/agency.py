@@ -16,10 +16,8 @@
 # WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
 # See the License for the specific language governing permissions and
 # limitations under the License.
-import sys, json, logging, requests, xmltodict, traceback
-import collections
+import json, logging, requests, xmltodict, traceback
 import spillman as s
-import urllib.request as urlreq
 from .database import connect_read
 from .log import setup_logger
 
@@ -34,9 +32,7 @@ class agency:
         try:
             db_ro = connect_read()
             cursor = db_ro.cursor()
-            cursor.execute(
-                f"select agency_id, agency_type, active911_id from agency where active = 1"
-            )
+            cursor.execute("select agency_id, agency_type, active911_id from agency where active = 1")
 
         except:
             cursor.close()
@@ -81,6 +77,6 @@ class agency:
             for agency in agency_list:
                 s.agency.agency_process(agency)
 
-        except Exception as e:
+        except:
             err.error(traceback.format_exc())
             return

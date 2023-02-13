@@ -16,8 +16,7 @@
 # WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
 # See the License for the specific language governing permissions and
 # limitations under the License.
-import logging, traceback
-from datetime import datetime
+import traceback
 from re import search
 from telnetlib import Telnet
 from .settings import settings_data
@@ -32,8 +31,8 @@ def send_page(page, a911_id):
     unit = f"page {a911_id}"
     page = repr(page)
     mess = f"mess {page}"
-    send = f"send"
-    exit = f"exit"
+    send = "send"
+    exitcmd = "exit"
 
     if a911_id is None:
         err.warning("Missing Active911 ID!")
@@ -67,9 +66,9 @@ def send_page(page, a911_id):
             else:
                 return_cd = 1
 
-            tn.write(exit.encode("utf-8") + b"\r\n")
+            tn.write(exitcmd.encode("utf-8") + b"\r\n")
 
-        except Exception as e:
+        except:
             err.error(traceback.format_exc())
             return_cd = 99
 

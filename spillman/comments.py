@@ -16,7 +16,7 @@
 # WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
 # See the License for the specific language governing permissions and
 # limitations under the License.
-import json, logging, xmltodict, traceback, requests
+import json, xmltodict, traceback, requests
 import uuid, re
 from urllib.request import urlopen
 import spillman as s
@@ -48,7 +48,7 @@ class comments:
                 self.process(calls["callid"])
 
             else:
-                err.debug(current_callid + " is not in agency: " + agency)
+                err.debug(current_callid + " is not in agency: " + self.agency)
 
         else:
             try:
@@ -61,7 +61,7 @@ class comments:
                 for active_calls in agency_calls:
                     self.process(active_calls["call_id"])
 
-            except Exception as e:
+            except:
                 err.error(traceback.format_exc())
                 return
 
