@@ -19,31 +19,30 @@
 import pymysql
 from .settings import settings_data
 
-db_info = {}
-db_info["user"] = settings_data["database"]["user"]
-db_info["password"] = settings_data["database"]["password"]
-db_info["host"] = settings_data["database"]["host"]
-db_info["host_ro"] = settings_data["database"]["host_ro"]
-db_info["schema"] = settings_data["database"]["schema"]
+def connect():
+    return pymysql.connect(
+        host=settings_data["database"]["host"],
+        user=settings_data["database"]["user"],
+        password=settings_data["database"]["password"],
+        database=settings_data["database"]["schema"],
+    )
 
-db = pymysql.connect(
-    host=db_info["host"],
-    user=db_info["user"],
-    password=db_info["password"],
-    database=db_info["schema"],
-)
+def connect_read():
+    return pymysql.connect(
+        host=settings_data["database"]["host_ro"],
+        user=settings_data["database"]["user"],
+        password=settings_data["database"]["password"],
+        database=settings_data["database"]["schema"],
+    )
 
-db_ro = pymysql.connect(
-    host=db_info["host_ro"],
-    user=db_info["user"],
-    password=db_info["password"],
-    database=db_info["schema"],
-)
-
+db = connect()
 cursor = db.cursor()
 cursor.execute("SET SESSION TRANSACTION ISOLATION LEVEL READ COMMITTED")
 cursor.close()
+db.close()
 
+db_ro = connect_read()
 cursor = db_ro.cursor()
 cursor.execute("SET SESSION TRANSACTION ISOLATION LEVEL READ COMMITTED")
 cursor.close()
+db_ro.close()

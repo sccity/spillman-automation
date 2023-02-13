@@ -22,7 +22,7 @@ import spillman as s
 from urllib.request import urlopen
 from datetime import datetime
 from .settings import settings_data
-from .database import db, db_ro
+from .database import connect, connect_read
 from .log import setup_logger
 
 err = setup_logger("incidents", "incidents")
@@ -139,6 +139,7 @@ class incidents:
 
             try:
                 try:
+                    db_ro = connect_read()
                     cursor = db_ro.cursor()
                     cursor.execute(
                         f"SELECT `desc` from nature where abbr = '{active_calls['nature']}'"
@@ -146,10 +147,12 @@ class incidents:
 
                 except Exception as e:
                     cursor.close()
+                    db_ro.close()
                     nature = {active_calls["nature"]}
 
                 db_nature = cursor.fetchone()
                 cursor.close()
+                db_ro.close()
                 nature = db_nature[0]
 
             except:
@@ -171,6 +174,7 @@ class incidents:
 
             try:
                 try:
+                    db_ro = connect_read()
                     cursor = db_ro.cursor()
                     cursor.execute(
                         f"SELECT name from cities where abbr = '{active_calls['city']}'"
@@ -182,15 +186,18 @@ class incidents:
 
                     except:
                         cursor.close()
+                        db_ro.close()
                         city = {active_calls["city"]}
 
                 except Exception as e:
                     cursor.close()
+                    db_ro.close()
                     err.error(traceback.format_exc())
                     return
 
                 db_city = cursor.fetchone()
                 cursor.close()
+                db_ro.close()
                 city = db_city[0]
 
             except:
@@ -223,6 +230,7 @@ class incidents:
 
             if (unit[0:3] == "PRE") or ("*" in unit):
                 try:
+                    db = connect()
                     cursor = db.cursor()
                     sql = ""
                     sql = f"""update incidents 
@@ -232,13 +240,16 @@ class incidents:
 
                 except:
                     cursor.close()
+                    db.close()
                     err.error(traceback.format_exc())
                     return
                 db.commit()
                 cursor.close()
+                db.close()
 
     def alerts(self, calls):
         try:
+            db_ro = connect_read()
             cursor = db_ro.cursor()
             cursor.execute(
                 f"select pre_alert_zones from agency where agency_id = '{self.agency}'"
@@ -246,11 +257,13 @@ class incidents:
 
         except Exception as e:
             cursor.close()
+            db_ro.close()
             err.error(traceback.format_exc())
             return
 
         pre_alert_zones = [list[0] for list in cursor.fetchall()]
         cursor.close()
+        db_ro.close()
 
         try:
             pre_alert_zones = ",".join(pre_alert_zones)
@@ -258,6 +271,7 @@ class incidents:
             pre_alert_zones = ""
 
         try:
+            db_ro = connect_read()
             cursor = db_ro.cursor()
             cursor.execute(
                 f"select pre_alert_natures from agency where agency_id = '{self.agency}'"
@@ -265,11 +279,13 @@ class incidents:
 
         except Exception as e:
             cursor.close()
+            db_ro.close()
             err.error(traceback.format_exc())
             return
 
         pre_alert_natures = [list[0] for list in cursor.fetchall()]
         cursor.close()
+        db_ro.close()
 
         try:
             pre_alert_natures = ",".join(pre_alert_natures)
@@ -308,6 +324,7 @@ class incidents:
 
                 try:
                     try:
+                        db_ro = connect_read()
                         cursor = db_ro.cursor()
                         cursor.execute(
                             f"SELECT `desc` from nature where abbr = '{calls.get('nature')}'"
@@ -315,11 +332,13 @@ class incidents:
 
                     except Exception as e:
                         cursor.close()
+                        db_ro.close()
                         err.error(traceback.format_exc())
                         return
 
                     db_nature = cursor.fetchone()
                     cursor.close()
+                    db_ro.close()
                     nature = db_nature[0]
 
                 except:
@@ -330,6 +349,7 @@ class incidents:
 
                 try:
                     try:
+                        db_ro = connect_read()
                         cursor = db_ro.cursor()
                         cursor.execute(
                             f"SELECT name from cities where abbr = '{calls.get('city')}'"
@@ -342,15 +362,18 @@ class incidents:
                             )
                         except:
                             cursor.close()
+                            db_ro.close()
                             city = calls.get("city")
 
                     except Exception as e:
                         cursor.close()
+                        db_ro.close()
                         err.error(traceback.format_exc())
                         return
 
                     db_city = cursor.fetchone()
                     cursor.close()
+                    db_ro.close()
                     city = db_city[0]
 
                 except:
@@ -437,6 +460,7 @@ class incidents:
 
                     try:
                         mutual_aid_units = mutual_aid_units.replace(" ", ",")
+                        db = connect()
                         cursor = db.cursor()
                         sql = ""
                         sql = f"""update incidents 
@@ -446,11 +470,13 @@ class incidents:
 
                     except:
                         cursor.close()
+                        db.close()
                         err.error(traceback.format_exc())
                         return
 
                     db.commit()
                     cursor.close()
+                    db.close()
                     return
 
                 else:
@@ -474,6 +500,7 @@ class incidents:
                     comments.process(callid)
 
                     try:
+                        db = connect()
                         cursor = db.cursor()
                         sql = ""
                         sql = f"""update incidents 
@@ -483,11 +510,13 @@ class incidents:
 
                     except:
                         cursor.close()
+                        db.close()
                         err.error(traceback.format_exc())
                         return
 
                     db.commit()
                     cursor.close()
+                    db.close()
                     return
 
                 else:
@@ -527,6 +556,7 @@ class incidents:
                         status = ""
 
                     try:
+                        db_ro = connect_read()
                         cursor = db_ro.cursor()
                         cursor.execute(
                             f"SELECT `desc` from nature where abbr = '{active_calls['nature']}'"
@@ -534,10 +564,12 @@ class incidents:
 
                         db_nature = cursor.fetchone()
                         cursor.close()
+                        db_ro.close()
                         nature = db_nature[0]
 
                     except:
                         cursor.close()
+                        db_ro.close()
                         try:
                             nature = active_calls["nature"]
                         except:
@@ -548,6 +580,7 @@ class incidents:
 
                     try:
                         try:
+                            db_ro = connect_read()
                             cursor = db_ro.cursor()
                             cursor.execute(
                                 f"SELECT name from cities where abbr = '{active_calls['city']}'"
@@ -561,6 +594,7 @@ class incidents:
 
                             except:
                                 cursor.close()
+                                db_ro.close()
                                 city = active_calls["city"]
 
                         except Exception as e:
@@ -569,6 +603,7 @@ class incidents:
 
                         db_city = cursor.fetchone()
                         cursor.close()
+                        db_ro.close()
                         city = db_city[0]
 
                     except:
@@ -651,6 +686,7 @@ class incidents:
                         comments.process(callid)
 
                         try:
+                            db = connect()
                             cursor = db.cursor()
                             sql = ""
                             sql = f"""update incidents 
@@ -660,11 +696,13 @@ class incidents:
 
                         except:
                             cursor.close()
+                            db.close()
                             err.error(traceback.format_exc())
                             continue
 
                         db.commit()
                         cursor.close()
+                        db.close()
                         continue
 
                     elif (zone in pre_alert_zones) and (nature in pre_alert_natures):
@@ -686,6 +724,7 @@ class incidents:
                         comments.process(callid)
 
                         try:
+                            db = connect()
                             cursor = db.cursor()
                             sql = ""
                             sql = f"""update incidents 
@@ -695,11 +734,13 @@ class incidents:
 
                         except:
                             cursor.close()
+                            db.close()
                             err.error(traceback.format_exc())
                             continue
 
                         db.commit()
                         cursor.close()
+                        db.close()
                         continue
 
                     else:
@@ -746,13 +787,16 @@ class incidents:
             """
 
             try:
+                db = connect()
                 cursor = db.cursor()
                 cursor.execute(sql)
                 db.commit()
                 cursor.close()
+                db.close()
 
             except Exception as e:
                 cursor.close()
+                db.close()
                 error = format(str(e))
 
                 if error.find("Lock wait timeout exceeded") != -1:
@@ -762,6 +806,7 @@ class incidents:
                 if error.find("Duplicate entry") != -1:
                     try:
                         try:
+                            db_ro = connect_read()
                             cursor = db_ro.cursor()
                             sql = ""
                             sql = f"""SELECT uuid, nature, city, address, incidentid 
@@ -770,9 +815,11 @@ class incidents:
                             cursor.execute(sql)
                             incident_results = cursor.fetchone()
                             cursor.close()
+                            db_ro.close()
 
                         except:
                             cursor.close()
+                            db_ro.close()
                             err.error(traceback.format_exc())
                             return
 
@@ -784,57 +831,69 @@ class incidents:
 
                         if nature != db_nature:
                             try:
+                                db = connect()
                                 cursor = db.cursor()
                                 cursor.execute(
                                     f"update incidents set nature = '{nature}', alert_sent = 0 where uuid = '{db_uuid}'"
                                 )
                                 db.commit()
                                 cursor.close()
+                                db.close()
 
                             except:
                                 cursor.close()
+                                db.close()
                                 err.error(traceback.format_exc())
                                 return
 
                         if city != db_city:
                             try:
+                                db = connect()
                                 cursor = db.cursor()
                                 cursor.execute(
                                     f"update incidents set city = '{city}', alert_sent = 0 where uuid = '{db_uuid}'"
                                 )
                                 db.commit()
                                 cursor.close()
+                                db.close()
 
                             except:
                                 cursor.close()
+                                db.close()
                                 err.error(traceback.format_exc())
                                 return
 
                         if address != db_address:
                             try:
+                                db = connect()
                                 cursor = db.cursor()
                                 cursor.execute(
                                     f"update incidents set address = '{address}', alert_sent = 0 where uuid = '{db_uuid}'"
                                 )
                                 db.commit()
                                 cursor.close()
+                                db.close()
 
                             except:
                                 cursor.close()
+                                db.close()
                                 err.error(traceback.format_exc())
                                 return
 
                         if recid != db_incidentid:
                             try:
+                                db = connect()
                                 cursor = db.cursor()
                                 cursor.execute(
                                     f"update incidents set incidentid = '{recid}' where uuid = '{db_uuid}'"
                                 )
                                 db.commit()
                                 cursor.close()
+                                db.close()
 
                             except:
                                 cursor.close()
+                                db.close()
                                 err.error(traceback.format_exc())
                                 return
 

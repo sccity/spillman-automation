@@ -17,7 +17,7 @@
 #See the License for the specific language governing permissions and
 #limitations under the License.
 import json, logging, traceback
-from .database import db, db_ro
+from .database import connect, connect_read
 from .log import setup_logger
 
 cleanuplog = setup_logger("cleanup", "cleanup")
@@ -26,6 +26,7 @@ cleanuplog = setup_logger("cleanup", "cleanup")
 def main():
     try:
         try:
+            db_ro = connect_read()
             cursor = db_ro.cursor()
             cursor.execute(
                 f"select agency, callid from incidents where alert_sent = 0 and TIMEDIFF(now(), reported) > '24:00:00'"
@@ -33,20 +34,24 @@ def main():
 
         except:
             cursor.close()
+            db_ro.close()
             cleanuplog.error(traceback.format_exc())
             return
 
         if cursor.rowcount == 0:
             cursor.close()
+            db_ro.close()
             return
 
         try:
             results = cursor.fetchall()
             cursor.close()
+            db_ro.close()
             incidents_list = [row for row in results if row[0] is not None]
 
             for row in incidents_list:
                 try:
+                    db = connect()
                     cursor = db.cursor()
                     cursor.execute(
                         f"update incidents set alert_sent = 1 where callid = '{row[1]}' and agency = '{row[0]}'"
@@ -56,14 +61,17 @@ def main():
                     )
                     db.commit()
                     cursor.close()
+                    db.close()
 
                 except:
                     cursor.close()
+                    db.close()
                     cleanuplog.error(traceback.format_exc())
                     return
 
         except Exception as e:
             cursor.close()
+            db.close()
             cleanuplog.error(traceback.format_exc())
             return
 

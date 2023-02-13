@@ -21,7 +21,7 @@ import collections
 import spillman as s
 import urllib.request as urlreq
 from .settings import settings_data
-from .database import db_ro
+from .database import connect_read
 from .log import setup_logger
 
 agencylog = setup_logger("agency", "agency")
@@ -33,6 +33,7 @@ class agency:
 
     def get():
         try:
+            db_ro = connect_read()
             cursor = db_ro.cursor()
             cursor.execute(
                 f"select agency_id, agency_type, active911_id from agency where active = 1"
@@ -40,11 +41,13 @@ class agency:
 
         except:
             cursor.close()
+            db_ro.close()
             agencylog.error(traceback.format_exc())
             return
 
         agencies = list(cursor.fetchall())
         cursor.close()
+        db_ro.close()
         return agencies
 
     def agency_process(agency):

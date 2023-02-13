@@ -21,7 +21,7 @@ import uuid
 from lxml import etree
 from datetime import datetime
 from .settings import settings_data
-from .database import db, db_ro
+from .database import connect, connect_read
 from .log import setup_logger
 
 wxlog = setup_logger("wx", "wx")
@@ -96,15 +96,18 @@ def main():
             return
 
     try:
+        db_ro = connect_read()
         cursor = db_ro.cursor()
         cursor.execute(
             f"select agency_id, agency_type, active911_id from agency where active = 1 and nws_alerts = 1"
         )
         agencies = list(cursor.fetchall())
         cursor.close()
+        db_ro.close()
 
     except:
         cursor.close()
+        db_ro.close()
         wxlog.error(traceback.format_exc())
         return
 
@@ -148,13 +151,16 @@ def main():
             """
 
             try:
+                db = connect()
                 cursor = db.cursor()
                 cursor.execute(sql)
                 db.commit()
                 cursor.close()
+                db.close()
 
             except Exception as e:
                 cursor.close()
+                db.close()
                 error = format(str(e))
                 if error.find("Duplicate entry") != -1:
                     wxlog.debug(
@@ -190,13 +196,16 @@ def main():
             """
 
             try:
+                db = connect()
                 cursor = db.cursor()
                 cursor.execute(sql)
                 db.commit()
                 cursor.close()
+                db.close()
 
             except Exception as e:
                 cursor.close()
+                db.close()
                 error = format(str(e))
 
                 if error.find("Duplicate entry") != -1:
