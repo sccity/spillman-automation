@@ -16,7 +16,7 @@
 # WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
 # See the License for the specific language governing permissions and
 # limitations under the License.
-import json, logging, traceback
+import logging, traceback
 from .database import connect, connect_read
 from .log import setup_logger
 
