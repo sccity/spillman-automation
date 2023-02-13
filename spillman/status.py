@@ -16,8 +16,7 @@
 # WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
 # See the License for the specific language governing permissions and
 # limitations under the License.
-import sys, json, logging, requests, xmltodict, traceback
-import urllib.request as urlreq
+import json, logging, requests, xmltodict, traceback
 from urllib.request import urlopen
 from datetime import datetime
 from .rlog import rlog
@@ -91,16 +90,11 @@ class status:
 
                     cross_staff_flag = 0
                     cross_staff_units = None
-                    always_on_flag = 0
-                    auto_rlog_flag = 0
 
                     try:
                         db_ro = connect_read()
                         cursor = db_ro.cursor()
-                        cursor.execute(
-                            f"""SELECT auto_rlog_flag 
-                                from agency where agency_id = '{self.agency}'"""
-                        )
+                        cursor.execute(f"SELECT auto_rlog_flag from agency where agency_id = '{self.agency}'")
 
                         db_response = cursor.fetchone()
                         rlog_flag = db_response[0]
@@ -120,16 +114,10 @@ class status:
                     try:
                         db_ro = connect_read()
                         cursor = db_ro.cursor()
-                        cursor.execute(
-                            f"""SELECT unit, cross_staff_flag, cross_staff_units, always_on_flag 
-                                from units where unit = '{unit}' and agency = '{self.agency}'"""
-                        )
-
+                        cursor.execute(f"SELECT unit, cross_staff_flag, cross_staff_units, always_on_flag from units where unit = '{unit}' and agency = '{self.agency}'")
                         db_response = cursor.fetchone()
-                        db_unit = db_response[0]
                         cross_staff_flag = db_response[1]
                         cross_staff_units = db_response[2]
-                        always_on_flag = db_response[3]
                         cursor.close()
                         db_ro.close()
 
@@ -263,6 +251,6 @@ class status:
 
             return cstatus[0]["status"]
 
-        except Exception as e:
+        except:
             err.error(traceback.format_exc())
             return

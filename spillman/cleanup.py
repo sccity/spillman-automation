@@ -16,7 +16,7 @@
 # WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
 # See the License for the specific language governing permissions and
 # limitations under the License.
-import logging, traceback
+import traceback
 from .database import connect, connect_read
 from .log import setup_logger
 
@@ -28,9 +28,7 @@ def main():
         try:
             db_ro = connect_read()
             cursor = db_ro.cursor()
-            cursor.execute(
-                f"select agency, callid from incidents where alert_sent = 0 and TIMEDIFF(now(), reported) > '24:00:00'"
-            )
+            cursor.execute("select agency, callid from incidents where alert_sent = 0 and TIMEDIFF(now(), reported) > '24:00:00'")
 
         except:
             cursor.close()
@@ -69,12 +67,12 @@ def main():
                     err.error(traceback.format_exc())
                     return
 
-        except Exception as e:
+        except:
             cursor.close()
             db.close()
             err.error(traceback.format_exc())
             return
 
-    except Exception as e:
+    except:
         err.error(traceback.format_exc())
         return
