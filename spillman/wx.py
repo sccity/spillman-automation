@@ -7,15 +7,15 @@
 # Spillman Digital Paging & Automation
 # Copyright Santa Clara City
 # Developed for Santa Clara - Ivins Fire & Rescue
-#Licensed under the Apache License, Version 2.0 (the "License");
-#you may not use this file except in compliance with the License.#
-#You may obtain a copy of the License at
-#http://www.apache.org/licenses/LICENSE-2.0
-#Unless required by applicable law or agreed to in writing, software
-#distributed under the License is distributed on an "AS IS" BASIS,
-#WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
-#See the License for the specific language governing permissions and
-#limitations under the License.
+# Licensed under the Apache License, Version 2.0 (the "License");
+# you may not use this file except in compliance with the License.#
+# You may obtain a copy of the License at
+# http://www.apache.org/licenses/LICENSE-2.0
+# Unless required by applicable law or agreed to in writing, software
+# distributed under the License is distributed on an "AS IS" BASIS,
+# WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+# See the License for the specific language governing permissions and
+# limitations under the License.
 import json, logging, requests, xmltodict, traceback
 import uuid
 from lxml import etree
@@ -24,7 +24,7 @@ from .settings import settings_data
 from .database import connect, connect_read
 from .log import setup_logger
 
-wxlog = setup_logger("wx", "wx")
+err = setup_logger("wx", "wx")
 
 nwsid = settings_data["global"]["nwsid"]
 
@@ -39,7 +39,7 @@ def main():
         atom = etree.fromstring(xml)
 
     except:
-        wxlog.error(traceback.format_exc())
+        err.error(traceback.format_exc())
         return
 
     for element in atom.xpath("//atom:entry", namespaces=ns):
@@ -92,7 +92,7 @@ def main():
             sql_date = now.strftime("%Y-%m-%d %H:%M:%S")
 
         except Exception as e:
-            wxlog.error(traceback.format_exc())
+            err.error(traceback.format_exc())
             return
 
     try:
@@ -108,13 +108,13 @@ def main():
     except:
         cursor.close()
         db_ro.close()
-        wxlog.error(traceback.format_exc())
+        err.error(traceback.format_exc())
         return
 
     for agency in agencies:
         agency_id = agency[0]
 
-        wxlog.debug(agency_id)
+        err.debug(agency_id)
 
         try:
             unique_id = uuid.uuid1()
@@ -163,7 +163,7 @@ def main():
                 db.close()
                 error = format(str(e))
                 if error.find("Duplicate entry") != -1:
-                    wxlog.debug(
+                    err.debug(
                         "Incident already exists in alert database for "
                         + id
                         + " reported "
@@ -173,7 +173,7 @@ def main():
                     return
 
                 else:
-                    wxlog.error(traceback.format_exc())
+                    err.error(traceback.format_exc())
                     return
 
             unique_id = uuid.uuid1()
@@ -209,18 +209,18 @@ def main():
                 error = format(str(e))
 
                 if error.find("Duplicate entry") != -1:
-                    wxlog.debug(
+                    err.debug(
                         "CAD comment already exists in alert database for "
                         + callid
                         + "."
                     )
 
                 else:
-                    wxlog.error(traceback.format_exc())
+                    err.error(traceback.format_exc())
                     return
 
         except Exception as e:
-            wxlog.error(traceback.format_exc())
+            err.error(traceback.format_exc())
             return
 
     return

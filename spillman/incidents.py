@@ -7,15 +7,15 @@
 # Spillman Digital Paging & Automation
 # Copyright Santa Clara City
 # Developed for Santa Clara - Ivins Fire & Rescue
-#Licensed under the Apache License, Version 2.0 (the "License");
-#you may not use this file except in compliance with the License.#
-#You may obtain a copy of the License at
-#http://www.apache.org/licenses/LICENSE-2.0
-#Unless required by applicable law or agreed to in writing, software
-#distributed under the License is distributed on an "AS IS" BASIS,
-#WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
-#See the License for the specific language governing permissions and
-#limitations under the License.
+# Licensed under the Apache License, Version 2.0 (the "License");
+# you may not use this file except in compliance with the License.#
+# You may obtain a copy of the License at
+# http://www.apache.org/licenses/LICENSE-2.0
+# Unless required by applicable law or agreed to in writing, software
+# distributed under the License is distributed on an "AS IS" BASIS,
+# WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+# See the License for the specific language governing permissions and
+# limitations under the License.
 import sys, json, logging, xmltodict, traceback, collections
 import requests, uuid
 import spillman as s
@@ -228,7 +228,7 @@ class incidents:
                 reported,
             )
 
-            if (unit[0:3] == "PRE"):
+            if unit[0:3] == "PRE":
                 try:
                     db = connect()
                     cursor = db.cursor()
@@ -408,11 +408,9 @@ class incidents:
                         for agency_unit in self.agency_units.split(","):
                             if unit == agency_unit:
                                 mutual_aid = True
-
                                 if first:
                                     mutual_aid_units = agency_unit
                                     first = False
-
                                 else:
                                     mutual_aid_units += " " + agency_unit
                 except:
@@ -459,10 +457,13 @@ class incidents:
                         mutual_aid_units = mutual_aid_units.replace(" ", ",")
                         db = connect()
                         cursor = db.cursor()
-                        sql = ""
-                        sql = f"""update incidents 
-                              set unit = '{mutual_aid_units}' 
-                              where callid = '{callid}' and agency = '{self.agency}';"""
+
+                        try:
+                            mutual_aid_units = mutual_aid_units.replace(",", " ")
+                        except:
+                            mutual_aid_units is None
+
+                        sql = f"update incidents set unit = '{mutual_aid_units}' where callid = '{callid}' and agency = '{self.agency}';"
                         cursor.execute(sql)
 
                     except:
@@ -499,10 +500,7 @@ class incidents:
                     try:
                         db = connect()
                         cursor = db.cursor()
-                        sql = ""
-                        sql = f"""update incidents 
-                              set unit = 'PRE' 
-                              where callid = '{callid}' and agency = '{self.agency}';"""
+                        sql = f"""update incidents set unit = 'PRE' where callid = '{callid}' and agency = '{self.agency}';"""
                         cursor.execute(sql)
 
                     except:
@@ -636,11 +634,9 @@ class incidents:
                             for agency_unit in self.agency_units.split(","):
                                 if unit == agency_unit:
                                     mutual_aid = True
-
                                     if first:
                                         mutual_aid_units = agency_unit
                                         first = False
-
                                     else:
                                         mutual_aid_units += " " + agency_unit
                     except:
@@ -668,6 +664,7 @@ class incidents:
                         err.debug(callid + " is a mutual aid call for " + self.agency)
 
                         nature = "MUTUAL AID - " + nature + " - " + city
+
                         self.process(
                             callid,
                             recid,
@@ -680,15 +677,19 @@ class incidents:
                             gps_y,
                             reported,
                         )
+
                         comments.process(callid)
 
                         try:
                             db = connect()
                             cursor = db.cursor()
-                            sql = ""
-                            sql = f"""update incidents 
-                                  set unit = '{units}' 
-                                  where callid = '{callid}' and agency = '{self.agency}';"""
+
+                            try:
+                                mutual_aid_units = mutual_aid_units.replace(",", " ")
+                            except:
+                                mutual_aid_units is None
+
+                            sql = f"update incidents set unit = '{mutual_aid_units}' where callid = '{callid}' and agency = '{self.agency}';"
                             cursor.execute(sql)
 
                         except:
@@ -724,9 +725,7 @@ class incidents:
                             db = connect()
                             cursor = db.cursor()
                             sql = ""
-                            sql = f"""update incidents 
-                                  set unit = 'PRE' 
-                                  where callid = '{callid}' and agency = '{self.agency}';"""
+                            sql = f"""update incidents set unit = 'PRE' where callid = '{callid}' and agency = '{self.agency}';"""
                             cursor.execute(sql)
 
                         except:

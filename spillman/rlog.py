@@ -7,15 +7,15 @@
 # Spillman Digital Paging & Automation
 # Copyright Santa Clara City
 # Developed for Santa Clara - Ivins Fire & Rescue
-#Licensed under the Apache License, Version 2.0 (the "License");
-#you may not use this file except in compliance with the License.#
-#You may obtain a copy of the License at
-#http://www.apache.org/licenses/LICENSE-2.0
-#Unless required by applicable law or agreed to in writing, software
-#distributed under the License is distributed on an "AS IS" BASIS,
-#WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
-#See the License for the specific language governing permissions and
-#limitations under the License.
+# Licensed under the Apache License, Version 2.0 (the "License");
+# you may not use this file except in compliance with the License.#
+# You may obtain a copy of the License at
+# http://www.apache.org/licenses/LICENSE-2.0
+# Unless required by applicable law or agreed to in writing, software
+# distributed under the License is distributed on an "AS IS" BASIS,
+# WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+# See the License for the specific language governing permissions and
+# limitations under the License.
 import time, logging, traceback
 from selenium import webdriver
 from selenium.webdriver.chrome.options import Options
@@ -26,7 +26,7 @@ from .settings import settings_data
 from .database import connect_read
 from .log import setup_logger
 
-rlogger = setup_logger("rlog", "rlog")
+err = setup_logger("rlog", "rlog")
 
 s = Service(settings_data["global"]["webdriver"])
 o = Options()
@@ -51,7 +51,7 @@ def rlog(rlog_unit, rlog_status, rlog_comment):
     except:
         cursor.close()
         db_ro.close()
-        rlogger.error(traceback.format_exc())
+        err.error(traceback.format_exc())
         return
 
     if cursor.rowcount == 0:
@@ -72,7 +72,7 @@ def rlog(rlog_unit, rlog_status, rlog_comment):
         browser.get(settings_data["spillman"]["touch_url"])
 
     except:
-        rlogger.error(traceback.format_exc())
+        err.error(traceback.format_exc())
         return
 
     time.sleep(0.1)
