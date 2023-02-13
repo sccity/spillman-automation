@@ -158,11 +158,7 @@ class status:
                         err.debug(f"{self.agency}:{unit} - ONAIR Timeout 1hr")
 
                         rlog(unit, "ONDT", "ONAIR TIMEOUT")
-                        callid = (
-                            unit
-                            + "-"
-                            + f"{time_str]}"
-                        )
+                        callid = (unit + "-" + time_str)
 
                         alerts.send(
                             self.agency,
