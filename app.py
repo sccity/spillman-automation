@@ -18,7 +18,7 @@
 #limitations under the License.
 import sys, os, time, traceback
 import spillman as s
-from spillman.database import db, db_ro
+from spillman.database import connect_read
 
 syslog = s.setup_logger("system", "system")
 
@@ -95,11 +95,13 @@ if len(args) > 1:
         syslog.info("Starting Unit Status Functions")
         while True:
             try:
+                db_ro = connect_read()
                 cursor = db_ro.cursor()
                 cursor.execute(f"select agency_id from agency where active = 1")
                 agencies = list(cursor.fetchall())
                 db.commit()
                 cursor.close()
+                db_ro.close()
 
                 for agency in agencies:
                     agency_id = agency[0]
@@ -162,5 +164,4 @@ if len(args) > 1:
 else:
     syslog.warning("No option provided")
 
-db.close()
 exit(0)
