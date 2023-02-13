@@ -242,10 +242,7 @@ class comments:
                         db = connect()
                         cursor = db.cursor()
                         cursor.execute(sql)
-                        db.commit()
-                        cursor.close()
-                        db.close()
-
+                        
                     except Exception as e:
                         cursor.close()
                         db.close()
@@ -259,6 +256,10 @@ class comments:
                         else:
                             commentlog.error(traceback.format_exc())
                             return
+                          
+                        db.commit()
+                        cursor.close()
+                        db.close()
 
                 except Exception as e:
                     commentlog.error(traceback.format_exc())
