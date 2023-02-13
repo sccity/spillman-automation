@@ -7,15 +7,15 @@
 # Spillman Digital Paging & Automation
 # Copyright Santa Clara City
 # Developed for Santa Clara - Ivins Fire & Rescue
-#Licensed under the Apache License, Version 2.0 (the "License");
-#you may not use this file except in compliance with the License.#
-#You may obtain a copy of the License at
-#http://www.apache.org/licenses/LICENSE-2.0
-#Unless required by applicable law or agreed to in writing, software
-#distributed under the License is distributed on an "AS IS" BASIS,
-#WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
-#See the License for the specific language governing permissions and
-#limitations under the License.
+# Licensed under the Apache License, Version 2.0 (the "License");
+# you may not use this file except in compliance with the License.#
+# You may obtain a copy of the License at
+# http://www.apache.org/licenses/LICENSE-2.0
+# Unless required by applicable law or agreed to in writing, software
+# distributed under the License is distributed on an "AS IS" BASIS,
+# WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+# See the License for the specific language governing permissions and
+# limitations under the License.
 import sys, json, logging, requests, xmltodict, traceback
 import urllib.request as urlreq
 from urllib.request import urlopen
@@ -27,7 +27,7 @@ from .database import connect, connect_read
 from requests.packages.urllib3.exceptions import InsecureRequestWarning
 from .log import setup_logger
 
-statuslog = setup_logger("status", "status")
+err = setup_logger("status", "status")
 
 requests.packages.urllib3.disable_warnings(InsecureRequestWarning)
 
@@ -50,15 +50,15 @@ class status:
             except Exception as e:
                 error = format(str(e))
                 if error.find("'NoneType'") != -1:
-                    statuslog.debug(f"No units for {self.agency}")
+                    err.debug(f"No units for {self.agency}")
                     return
                 else:
-                    statuslog.error(traceback.format_exc())
+                    err.error(traceback.format_exc())
                     return
 
             for units in status:
                 try:
-                    statuslog.debug(
+                    err.debug(
                         "Processing Unit: " + units["unit"] + " " + units["status"]
                     )
 
@@ -109,7 +109,7 @@ class status:
                     except:
                         cursor.close()
                         db_ro.close()
-                        statuslog.error(traceback.format_exc())
+                        err.error(traceback.format_exc())
                         continue
 
                     if rlog_flag == 0:
@@ -148,7 +148,7 @@ class status:
                         except:
                             cursor.close()
                             db.close()
-                            statuslog.error(traceback.format_exc())
+                            err.error(traceback.format_exc())
                             continue
 
                     try:
@@ -163,11 +163,11 @@ class status:
                     except:
                         cursor.close()
                         db.close()
-                        statuslog.error(traceback.format_exc())
+                        err.error(traceback.format_exc())
                         continue
 
                     if (status == "ONAIR") and (hours >= 1):
-                        statuslog.debug(f"{self.agency}:{unit} - ONAIR Timeout 1hr")
+                        err.debug(f"{self.agency}:{unit} - ONAIR Timeout 1hr")
 
                         rlog(unit, "ONDT", "ONAIR TIMEOUT")
                         callid = (
@@ -191,7 +191,7 @@ class status:
                         )
 
                     elif (status == "ONAIR") and ("AOA" not in message):
-                        statuslog.debug(f"{unit} updated AOA description")
+                        err.debug(f"{unit} updated AOA description")
                         rlog(unit, "ONAIR", "AOA - AVAILABLE NOT IN QUARTERS")
 
                     elif (cross_staff_flag == 1) and (
@@ -210,10 +210,10 @@ class status:
                                 c_stat != "XBSY"
                             ):
                                 if c_stat != "XBSY":
-                                    statuslog.debug(f"{cs_unit} set to XBSY")
+                                    err.debug(f"{cs_unit} set to XBSY")
                                     rlog(cs_unit, "XBSY", "CROSS STAFF W/" + unit)
                                 else:
-                                    statuslog.debug(f"{cs_unit} already XBSY")
+                                    err.debug(f"{cs_unit} already XBSY")
 
                     elif (cross_staff_flag == 1) and (status in "ONDT, 8"):
                         try:
@@ -227,7 +227,7 @@ class status:
                                     c_stat = "ERR"
 
                                 if c_stat == "XBSY":
-                                    statuslog.debug(f"{unit} set to ONDT")
+                                    err.debug(f"{unit} set to ONDT")
                                     rlog(cs_unit, "ONDT", "CROSS STAFF ADJUSTMENT")
                         except:
                             return
@@ -238,11 +238,11 @@ class status:
                         pass
 
                     else:
-                        statuslog.error(traceback.format_exc())
+                        err.error(traceback.format_exc())
                         return
 
         except Exception as e:
-            statuslog.error(traceback.format_exc())
+            err.error(traceback.format_exc())
             return
 
     def current(self, unit):
@@ -254,15 +254,15 @@ class status:
             except Exception as e:
                 error = format(str(e))
                 if error.find("'NoneType'") != -1:
-                    statuslog.debug(f"No units for {self.agency}")
+                    err.debug(f"No units for {self.agency}")
                     return
 
                 else:
-                    statuslog.error(traceback.format_exc())
+                    err.error(traceback.format_exc())
                     return
 
             return cstatus[0]["status"]
 
         except Exception as e:
-            statuslog.error(traceback.format_exc())
+            err.error(traceback.format_exc())
             return
