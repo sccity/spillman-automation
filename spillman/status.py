@@ -83,7 +83,7 @@ class status:
                         status_time = str(int(divmod(duration_in_s, 60)[0])) + " min(s)"
 
                     try:
-                        message = units["desc"]
+                        message = units["description"]
 
                     except:
                         message = ""
