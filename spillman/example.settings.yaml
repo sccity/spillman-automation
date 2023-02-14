@@ -1,25 +1,30 @@
 global:
+    env: "DEV"
     loglevel: "INFO"
-    nwsid: ""
+    nwsid: "UTC053"
     webdriver: "/usr/bin/chromedriver"
     smtp:
         host: ""
         port: 
-        user:
-        pass:
-        from:
-        to:
+        user: ""
+        pass: ""
+        from: ""
+        to: ""
 database:
-    schema: 
-    user:
-    password: 
-    host:
-    host_ro:
+    schema: ""
+    user: ""
+    password: ""
+    host: ""
+    host_ro: ""
+spillman-api:
+    url: ""
+    token: ""
 spillman:
-    url:
-    touch_url:
-    user:
-    password:
+    url: ""
+    touch_url: ""
+    user: ""
+    password: ""
+    sendrlog: "Y"
 active911:
     sendalerts: "Y"
     update_delay: 60
