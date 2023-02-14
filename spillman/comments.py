@@ -96,8 +96,12 @@ class comments:
             units = self.units.get(callid)
         except:
             units = "Unknown"
-
-        if units.find("dict") != -1:
+            
+            
+        try:
+            if units.find("dict") != -1:
+                units = "Unknown"
+        except:
             units = "Unknown"
 
         try:
