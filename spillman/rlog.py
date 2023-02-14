@@ -39,8 +39,14 @@ o.add_argument("--remote-debugging-port=9222")
 api_usr = settings_data["spillman"]["user"]
 api_pwd = settings_data["spillman"]["password"]
 
+sendrlog = settings_data["spillman"]["sendrlog"]
+
 
 def rlog(rlog_unit, rlog_status, rlog_comment):
+    if sendrlog == "N":
+        err.info("RLOG - Unit: " + rlog_unit + " Status: " + rlog_status + " Comment: " + rlog_comment)
+        return
+      
     try:
         db_ro = connect_read()
         cursor = db_ro.cursor()
