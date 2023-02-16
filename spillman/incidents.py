@@ -549,16 +549,30 @@ class incidents:
                         db_nature = cursor.fetchone()
                         cursor.close()
                         db_ro.close()
-                        nature = db_nature[0]
+                        
+                        try:
+                            nature = db_nature[0]
+                        except:
+                            nature = "Unknown"
 
                     except:
-                        cursor.close()
-                        db_ro.close()
+                        try:
+                            cursor.close()
+                            db_ro.close()
+                        except:
+                            err.info(traceback.format_exc())
+                            
                         try:
                             nature = active_calls["nature"]
                         except:
                             nature = "Unknown"
 
+                    if nature == "Unknown":
+                        try:
+                            nature = active_calls["nature"]
+                        except:
+                            nature = "Unknown"
+                            
                     if nature is None:
                         nature = "Unknown"
 
