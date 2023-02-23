@@ -108,7 +108,7 @@ def main():
                         continue
                     elif row[5] == "":
                         continue
-                    else
+                    else:
                         self.send_incident(
                             row[1],
                             row[3],
