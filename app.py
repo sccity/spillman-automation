@@ -107,6 +107,8 @@ if len(args) > 1:
                     syslog.debug(f"Processing {agency_id} Units")
                     current_agency = s.status(agency_id)
                     current_agency.unit()
+                    
+                s.cleanup.main()
 
                 if arg2.lower() == "--test":
                     break
