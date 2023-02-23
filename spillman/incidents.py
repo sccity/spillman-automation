@@ -380,9 +380,11 @@ class incidents:
 
             if unit == "":
                 err.debug(callid + " is missing a unit")
+                return
 
             elif unit is None:
                 err.debug(callid + " is missing a unit")
+                return
 
             else:
                 units = self.units.get(callid)
@@ -390,7 +392,7 @@ class incidents:
                 try:
                     units = units.replace(" ", ",")
                 except:
-                    units = ""
+                    return
 
                 mutual_aid_units = ""
 
@@ -420,6 +422,9 @@ class incidents:
                     call_type_short = "o"
 
                 if units is None:
+                    return
+                  
+                elif units == "":
                     return
 
                 elif (
@@ -610,20 +615,20 @@ class incidents:
                     continue
 
                 if unit == "":
-                    continue
                     err.debug(callid + " is missing a unit")
+                    continue
 
                 elif unit is None:
-                    continue
                     err.debug(callid + " is missing a unit")
-
+                    continue
+                    
                 else:
                     units = self.units.get(callid)
 
                     try:
                         units = units.replace(" ", ",")
                     except:
-                        units = ""
+                        continue
 
                     mutual_aid_units = ""
 
