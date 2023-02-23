@@ -61,6 +61,8 @@ class agency:
             current_agency.insert(agency_calls)
             agency_comments = s.comments(agency_id)
             agency_comments.get(agency_calls)
+            agency_alerts.incidents()
+            agency_alerts.comments()
 
         non_agency_calls = current_agency.other()
 
@@ -69,10 +71,9 @@ class agency:
 
         else:
             current_agency.alerts(non_agency_calls)
+            agency_alerts.incidents()
+            agency_alerts.comments()
             
-        agency_alerts.incidents()
-        agency_alerts.comments()
-
     def paging(agency_list):
         try:
             for agency in agency_list:
