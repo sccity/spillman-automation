@@ -43,9 +43,20 @@ class units:
             cursor.close()
             db_ro.close()
             return
-
-        units = [list[0] for list in cursor.fetchall()]
-        units = ",".join(units)
+          
+        try:
+            units = [list[0] for list in cursor.fetchall()]
+            units = ",".join(units)
+        except:
+            units = "ERR"
+        
+        if units is None:
+            units = "ERR"
+        elif units == "":
+            units = "ERR"
+        else:
+            units = units
+        
         return units
 
     def update(self, callid):
