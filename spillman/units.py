@@ -245,7 +245,6 @@ class units:
                         if first:
                             unit_list = unit.get("unit")
                             first = False
-
                         else:
                             unit_list += " " + unit.get("unit")
 
@@ -255,6 +254,8 @@ class units:
             except Exception as e:
                 err.error(traceback.format_exc())
                 return
+              
+            print(unit_list)
 
             return unit_list
 
