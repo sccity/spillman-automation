@@ -16,7 +16,7 @@
 # WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
 # See the License for the specific language governing permissions and
 # limitations under the License.
-import json, requests, xmltodict, traceback
+import json, requests, xmltodict, traceback, re
 from urllib.request import urlopen
 from .settings import settings_data
 from .database import connect, connect_read
@@ -254,8 +254,10 @@ class units:
                 return
               
             if "dict_values" in unit_list:
-                unit_list = {each["unit"]: each for each in units}.values()
-                
+                unit_list = re.sub("dict_values\(\[\{'call_id': '[^']*', 'agency': '[^']*', 'unit': '", '', unit_list)
+                unit_list = re.sub("', 'status': '[^']*', 'zone': '[^']*', 'latitude': '[^']*', 'longitude': '[^']*', 'description': '[^']*', 'date': '[^']*'\}]\)", '', unit_list)
+            
+            unit_list = re.sub("\s+", ' ', unit_list)
             return unit_list
 
         except Exception as e:
