@@ -23,7 +23,7 @@ from .log import setup_logger
 err = setup_logger("cleanup", "cleanup")
 
 
-def main():
+def expired():
     try:
         try:
             db_ro = connect_read()
@@ -76,7 +76,8 @@ def main():
     except:
         err.error(traceback.format_exc())
         return
-
+      
+def paging():
     try:
         try:
             db_ro = connect_read()
