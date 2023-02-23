@@ -108,9 +108,8 @@ if len(args) > 1:
                     current_agency = s.status(agency_id)
                     current_agency.unit()
                     
-                s.cleanup.expired()
-                s.cleanup.paging()
-
+                s.cleanup.main()
+                
                 if arg2.lower() == "--test":
                     break
 
@@ -156,7 +155,7 @@ if len(args) > 1:
         os.unlink(pidfile)
 
     elif arg1.lower() == "--cleanup":
-        s.cleanup.expired()
+        s.cleanup.main()
 
     elif arg1.lower() == "--check-config":
         print("Just making sure everything works!")

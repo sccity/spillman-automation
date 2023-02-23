@@ -308,8 +308,6 @@ class alerts:
                 return
 
         else:
-            cursor.close()
-            db.close()
             return
 
     @staticmethod
