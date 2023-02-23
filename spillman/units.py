@@ -235,8 +235,6 @@ class units:
 
                     else:
                         units = str(units)
-                        units = units.replace("dict_values([{'unit': '", "")
-                        units = units.replace("'}])", "")
                         unit_list = units
 
                 else:
@@ -255,8 +253,9 @@ class units:
                 err.error(traceback.format_exc())
                 return
               
-            print(unit_list)
-
+            if "dict_values" in unit_list:
+                unit_list = {each["unit"]: each for each in units}.values()
+                
             return unit_list
 
         except Exception as e:
