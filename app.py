@@ -68,8 +68,6 @@ if len(args) > 1:
                 if arg2.lower() == "--test":
                     break
 
-                time.sleep(1)
-
             except KeyboardInterrupt:
                 syslog.info("\nInterrupted!")
                 os.unlink(pidfile)
