@@ -210,6 +210,7 @@ class incidents:
 
         if (unit == "") or (unit is None):
             err.debug(callid + " is missing a unit")
+            return
 
         else:
             self.process(
