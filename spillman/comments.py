@@ -37,7 +37,7 @@ class comments:
         self.api_token = settings_data["spillman-api"]["token"]
         self.delay = settings_data["active911"]["update_delay"]
         self.agency = agency.upper()
-        self.agency_type = agency_type
+        self.agency_type = agency_type.lower()
         self.units = s.units(self.agency)
 
     def get(self, calls):

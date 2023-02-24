@@ -287,7 +287,7 @@ class incidents:
         except TypeError:
             pre_alert_natures = ""
 
-        comments = s.comments(self.agency)
+        comments = s.comments(self.agency, self.agency_type)
 
         if type(calls) == dict:
             try:
