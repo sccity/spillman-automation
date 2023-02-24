@@ -198,7 +198,7 @@ class alerts:
         else:
             results = cursor.fetchone()
             cursor.close()
-            db_page = repr(results[3])
+            db_page = results[3]
             
             if page == db_page:
                 return_code = 0
@@ -381,7 +381,7 @@ class alerts:
         else:
             results = cursor.fetchone()
             cursor.close()
-            db_page = repr(results[3])
+            db_page = results[3]
             
             if page == db_page:
                 return_code = 0
