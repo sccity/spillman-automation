@@ -16,7 +16,7 @@
 # WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
 # See the License for the specific language governing permissions and
 # limitations under the License.
-import traceback
+import traceback, uuid
 from .database import connect, connect_read
 from .settings import version_data
 from .page import send_page
@@ -160,7 +160,62 @@ class alerts:
             comment = comment
 
         page = f"""CALLID: {callid} CALL: {nature} GPS: {gps_y}, {gps_x} PLACE: {address} CITY: {city} ZONE: {zone} UNIT: {unit} DATE: {date} COMMENT:{comment}"""
-        return_code = send_page(page, self.a911_id)
+
+        try:
+            db_ro = connect_read()
+            cursor = db_ro.cursor()
+            cursor.execute(f"select * from page where callid = '{callid}' and agency = '{self.agency}'")
+
+        except Exception as e:
+            cursor.close()
+            db_ro.close()
+            err.error(traceback.format_exc())
+            return
+
+        if cursor.rowcount == 0:
+            cursor.close()
+            db_ro.close()
+            
+            unique_id = uuid.uuid1()
+            
+            try:
+                db = connect()
+                cursor = db.cursor()
+                cursor.execute(f"insert into page (uuid, agency, callid, data) values ('{unique_id}', '{self.agency}', '{callid}', '{page})')")
+                db.commit()
+                cursor.close()
+                db.close()
+            except:
+                cursor.close()
+                db.close()
+                err.error(traceback.format_exc())
+                return 
+              
+            return_code = send_page(page, self.a911_id)
+
+        else:
+            results = cursor.fetchone()
+            cursor.close()
+            db_page = repr(results[3])
+            
+            if page == db_page:
+                return_code = 0
+                err.info("Page data identical, not repaging")
+            else:
+                try:
+                    db = connect()
+                    cursor = db.cursor()
+                    cursor.execute(f"update page set data = '{page}' where callid = '{callid}' and agency = '{self.agency}'")
+                    db.commit()
+                    cursor.close()
+                    db.close()
+                except:
+                    cursor.close()
+                    db.close()
+                    err.error(traceback.format_exc())
+                    return 
+                  
+                return_code = send_page(page, self.a911_id)
 
         if return_code == 0:
             try:
@@ -287,8 +342,62 @@ class alerts:
         nature = db_nature.replace("'", "")
 
         page = f"""CALLID: {callid} CALL: {nature} GPS: {gps_y}, {gps_x} PLACE: {address} CITY: {city} ZONE: {zone} UNIT: {unit_list} DATE: {date} COMMENT:{comment}"""
+        
+        try:
+            db_ro = connect_read()
+            cursor = db_ro.cursor()
+            cursor.execute(f"select * from page where callid = '{callid}' and agency = '{self.agency}'")
 
-        return_code = send_page(page, self.a911_id)
+        except Exception as e:
+            cursor.close()
+            db_ro.close()
+            err.error(traceback.format_exc())
+            return
+
+        if cursor.rowcount == 0:
+            cursor.close()
+            db_ro.close()
+            
+            unique_id = uuid.uuid1()
+            
+            try:
+                db = connect()
+                cursor = db.cursor()
+                cursor.execute(f"insert into page (uuid, agency, callid, data) values ('{unique_id}', '{self.agency}', '{callid}', '{page})')")
+                db.commit()
+                cursor.close()
+                db.close()
+            except:
+                cursor.close()
+                db.close()
+                err.error(traceback.format_exc())
+                return 
+              
+            return_code = send_page(page, self.a911_id)
+
+        else:
+            results = cursor.fetchone()
+            cursor.close()
+            db_page = repr(results[3])
+            
+            if page == db_page:
+                return_code = 0
+                err.info("Page data identical, not repaging")
+            else:
+                try:
+                    db = connect()
+                    cursor = db.cursor()
+                    cursor.execute(f"update page set data = '{page}' where callid = '{callid}' and agency = '{self.agency}'")
+                    db.commit()
+                    cursor.close()
+                    db.close()
+                except:
+                    cursor.close()
+                    db.close()
+                    err.error(traceback.format_exc())
+                    return 
+                  
+                return_code = send_page(page, self.a911_id)
 
         if return_code == 0:
             try:
@@ -314,8 +423,6 @@ class alerts:
     def send(
         agency, callid, nature, unit, city, zone, address, gps_x, gps_y, date, comment
     ):
-        page = f"""CALLID: {callid} CALL: {nature} GPS: {gps_y}, {gps_x} PLACE: {address} CITY: {city} ZONE: {zone} UNIT: {unit} DATE: {date} COMMENT:{comment}"""
-
         if unit is None:
             return
 
@@ -346,6 +453,8 @@ class alerts:
 
         else:
             comment = comment
+            
+        page = f"""CALLID: {callid} CALL: {nature} GPS: {gps_y}, {gps_x} PLACE: {address} CITY: {city} ZONE: {zone} UNIT: {unit} DATE: {date} COMMENT:{comment}"""
 
         try:
             db_ro = connect_read()
@@ -364,5 +473,6 @@ class alerts:
             return
 
         a911_id = db_response[0]
+        
         send_page(page, a911_id)
         return
