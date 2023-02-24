@@ -182,7 +182,8 @@ class alerts:
             try:
                 db = connect()
                 cursor = db.cursor()
-                cursor.execute(f"insert into page (uuid, agency, callid, data) values ('{unique_id}', '{self.agency}', '{callid}', '{page}')")
+                sql = f"insert into page (uuid, agency, callid, data) values ('{unique_id}', '{self.agency}', '{callid}', '{page}')"
+                cursor.execute(sql)
                 db.commit()
                 cursor.close()
                 db.close()
@@ -343,7 +344,7 @@ class alerts:
         nature = db_nature.replace("'", "")
 
         page = f"""CALLID: {callid} CALL: {nature} GPS: {gps_y}, {gps_x} PLACE: {address} CITY: {city} ZONE: {zone} UNIT: {unit_list} DATE: {date} COMMENT:{comment}"""
-        page.replace("'", "")
+        page = page.replace("'", "")
         
         try:
             db_ro = connect_read()
@@ -365,7 +366,8 @@ class alerts:
             try:
                 db = connect()
                 cursor = db.cursor()
-                cursor.execute(f"insert into page (uuid, agency, callid, data) values ('{unique_id}', '{self.agency}', '{callid}', '{page}')")
+                sql = f"insert into page (uuid, agency, callid, data) values ('{unique_id}', '{self.agency}', '{callid}', '{page}')"
+                cursor.execute(sql)
                 db.commit()
                 cursor.close()
                 db.close()
@@ -457,7 +459,7 @@ class alerts:
             comment = comment
             
         page = f"""CALLID: {callid} CALL: {nature} GPS: {gps_y}, {gps_x} PLACE: {address} CITY: {city} ZONE: {zone} UNIT: {unit} DATE: {date} COMMENT:{comment}"""
-        page.replace("'", "")
+        page = page.replace("'", "")
 
         try:
             db_ro = connect_read()
