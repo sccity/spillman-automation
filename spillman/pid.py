@@ -42,24 +42,6 @@ def checkPidFile(pid_file):
 
     if diff >= 1:
         err.info("Stale process found... Terminating.")
-
-        try:
-            os.kill(current_pid, signal.SIGKILL)
-
-        except Exception as e:
-            error = format(str(e))
-
-            if error.find("'NoneType'") != -1:
-                pass
-
-            elif error.find("'No such process'") != -1:
-                pass
-
-            elif error.find("'Errno 3'") != -1:
-                pass
-
-            else:
-                err.error(traceback.format_exc())
-
+        os.kill(current_pid, signal.SIGKILL)
         os.unlink(pid_file)
     return
