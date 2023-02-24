@@ -908,7 +908,7 @@ class incidents:
                 else:
                     err.error(traceback.format_exc())
 
-            self.units.update(callid)
-
         except Exception as e:
             err.error(traceback.format_exc())
+            
+        self.units.update(callid)
