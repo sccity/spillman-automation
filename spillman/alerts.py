@@ -181,7 +181,7 @@ class alerts:
             try:
                 db = connect()
                 cursor = db.cursor()
-                cursor.execute(f"insert into page (uuid, agency, callid, data) values ('{unique_id}', '{self.agency}', '{callid}', '{page})')")
+                cursor.execute(f"insert into page (uuid, agency, callid, data) values ('{unique_id}', '{self.agency}', '{callid}', '{page}')")
                 db.commit()
                 cursor.close()
                 db.close()
@@ -363,7 +363,7 @@ class alerts:
             try:
                 db = connect()
                 cursor = db.cursor()
-                cursor.execute(f"insert into page (uuid, agency, callid, data) values ('{unique_id}', '{self.agency}', '{callid}', '{page})')")
+                cursor.execute(f"insert into page (uuid, agency, callid, data) values ('{unique_id}', '{self.agency}', '{callid}', '{page}')")
                 db.commit()
                 cursor.close()
                 db.close()
