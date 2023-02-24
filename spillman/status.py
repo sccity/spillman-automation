@@ -179,7 +179,7 @@ class status:
                         rlog(unit, "ONAIR", "AOA - AVAILABLE NOT IN QUARTERS")
 
                     elif (cross_staff_flag == 1) and (
-                        status in "PAGED, ENRT, ARRVD, ARVDH, ENRTH, STAGE, ONAIR"
+                        status in "PAGED, ENRT, ARRVD, ARVDH, ENRTH, STAGE, ONAIR, OOSRV"
                     ):
                         for cs_units in cross_staff_units.split(","):
                             cs_unit = cs_units.strip()
