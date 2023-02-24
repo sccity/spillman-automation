@@ -225,7 +225,6 @@ class alerts:
                     if "cursor" in locals():
                         try:
                             cursor.close()
-                            db_ro.close()
                         except:
                             err.warning(traceback.format_exc())
                     else:
