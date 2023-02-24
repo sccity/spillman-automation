@@ -54,7 +54,7 @@ if len(args) > 1:
         s.checkPidFile(pidfile)
 
         if os.path.isfile(pidfile):
-            syslog.warning("Paging Process Already Running")
+            syslog.info("Paging Process Already Running")
             sys.exit()
 
         open(pidfile, "w").write(pid)
@@ -85,7 +85,7 @@ if len(args) > 1:
         s.checkPidFile(pidfile)
 
         if os.path.isfile(pidfile):
-            syslog.warning("Status Process Already Running")
+            syslog.info("Status Process Already Running")
             sys.exit()
 
         open(pidfile, "w").write(pid)
@@ -130,7 +130,7 @@ if len(args) > 1:
         s.checkPidFile(pidfile)
 
         if os.path.isfile(pidfile):
-            syslog.warning("Misc Process Already Running")
+            syslog.info("Misc Process Already Running")
             sys.exit()
 
         open(pidfile, "w").write(pid)
@@ -160,8 +160,8 @@ if len(args) > 1:
         syslog.info("Just making sure everything works!")
 
     else:
-        syslog.warning("No option provided")
+        syslog.info("No option provided")
 else:
-    syslog.warning("No option provided")
+    syslog.info("No option provided")
 
 exit(0)
