@@ -30,13 +30,14 @@ err = setup_logger("comments", "comments")
 
 
 class comments:
-    def __init__(self, agency):
+    def __init__(self, agency, agency_type):
         self.version = version_data["version"]
         self.env = settings_data["global"]["env"]
         self.api_url = settings_data["spillman-api"]["url"]
         self.api_token = settings_data["spillman-api"]["token"]
         self.delay = settings_data["active911"]["update_delay"]
         self.agency = agency.upper()
+        self.agency_type = agency_type
         self.units = s.units(self.agency)
 
     def get(self, calls):
@@ -176,7 +177,7 @@ class comments:
             "Spillman Mobile Link for Incident:\n"
             + settings_data["spillman"]["touch_url"]
             + "secure/calldetail?longCallId="
-            + callid
+            + callid + "&type=" + self.agency_type
             + "\n\n"
             + "Report an Issue:\n"
             + "https://help.scifr.net/index.php?a=add&catid=2&custom1="

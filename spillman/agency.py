@@ -59,7 +59,7 @@ class agency:
 
         else:
             current_agency.insert(agency_calls)
-            agency_comments = s.comments(agency_id)
+            agency_comments = s.comments(agency_id, agency_type)
             agency_comments.get(agency_calls)
             agency_alerts.incidents()
             agency_alerts.comments()
