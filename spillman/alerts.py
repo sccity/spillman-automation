@@ -220,47 +220,13 @@ class alerts:
                 return_code = send_page(page, self.a911_id)
 
         if return_code == 0:
-            try:
-                try:
-                    if "cursor" in locals():
-                        try:
-                            cursor.close()
-                        except:
-                            err.warning(traceback.format_exc())
-                    else:
-                        db = connect()
-                        cursor = db.cursor()
-
-                    try:
-                        cursor.execute(
-                            f"update incidents set alert_sent = 1 where callid = '{callid}' and agency = '{self.agency}'"
-                        )
-
-                    except Exception as e:
-                        error = format(str(e))
-                        if error.find("'Lock wait timeout exceeded'") != -1:
-                            cursor.close()
-                            db.close()
-
-                            db = connect()
-                            cursor = db.cursor()
-                            cursor.execute(
-                                f"update incidents set alert_sent = 1 where callid = '{callid}' and agency = '{self.agency}'"
-                            )
-                            db.commit()
-                            db.close()
-                        else:
-                            return
-
-                    db.commit()
-                    cursor.close()
-                    db.close()
-
-                except:
-                    cursor.close()
-                    db.close()
-                    err.error(traceback.format_exc())
-                    return
+            try:    
+                db = connect()
+                cursor = db.cursor()
+                cursor.execute(f"update incidents set alert_sent = 1 where callid = '{callid}' and agency = '{self.agency}'")
+                db.commit()
+                cursor.close()
+                db.close()
 
                 if comment is not None:
                     try:
@@ -272,7 +238,7 @@ class alerts:
                         db.commit()
                         cursor.close()
                         db.close()
-
+                
                     except:
                         cursor.close()
                         db.close()
