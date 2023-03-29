@@ -187,20 +187,20 @@ class comments:
             return
 
         try:
-            db_gps_x = incident_results[0]
-            db_gps_y = incident_results[1]
+            db_gps_x = str(incident_results[0])
+            db_gps_y = str(incident_results[1])
         except:
-            db_gps_x = 0
-            db_gpx_y = 0
+            db_gps_x = "0"
+            db_gpx_y = "0"
         
-        header = "Preplan Map:\n"
+        header = ("Preplan Map:\n"
         + "https://sccity.nextgis.com/resource/52/display?panel=none&zoom=19&lon=" + db_gps_x + "&lat=" + db_gps_y + "\n"
         + "Priority: "
         + response
         + "\n" 
         + "Responding Units:\n" 
         + units 
-        + "\n"
+        + "\n")
 
         footer = (
             "Spillman Mobile Link for Incident:\n"
