@@ -161,6 +161,7 @@ class alerts:
 
         page = f"""CALLID: {callid} CALL: {nature} GPS: {gps_y}, {gps_x} PLACE: {address} CITY: {city} ZONE: {zone} UNIT: {unit} DATE: {date} COMMENT:{comment}"""
         page.replace("'", "")
+        page.replace('"', '')
 
         try:
             db_ro = connect_read()
