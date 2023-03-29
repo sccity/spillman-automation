@@ -170,8 +170,37 @@ class comments:
             cad_comment,
             flags=re.MULTILINE,
         )
+        
+        try:
+            db_ro = connect_read()
+            cursor = db_ro.cursor()
+            sql = f"select gps_x, gps_y from incidents where callid = '{callid}' and agency = '{self.agency}';"
+            cursor.execute(sql)
+            incident_results = cursor.fetchone()
+            cursor.close()
+            db_ro.close()
 
-        header = "Priority: " + response + "\n" + "Responding Units:\n" + units + "\n"
+        except:
+            cursor.close()
+            db_ro.close()
+            err.error(traceback.format_exc())
+            return
+
+        try:
+            db_gps_x = incident_results[0]
+            db_gps_y = incident_results[1]
+        except:
+            db_gps_x = 0
+            db_gpx_y = 0
+        
+        header = "Preplan Map:\n"
+        + "https://sccity.nextgis.com/resource/52/display?panel=none&zoom=19&lon=" + db_gps_x + "&lat=" + db_gps_y + "\n"
+        + "Priority: "
+        + response
+        + "\n" 
+        + "Responding Units:\n" 
+        + units 
+        + "\n"
 
         footer = (
             "Spillman Mobile Link for Incident:\n"
