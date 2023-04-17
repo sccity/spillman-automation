@@ -183,10 +183,6 @@ class alerts:
             try:
                 db = connect()
                 cursor = db.cursor()
-                unique_id = unique_id.replace('"', "")
-                unique_id = unique_id.replace("'", "")
-                self.agency = self.agency.replace('"', "")
-                self.agency = self.agency.replace("'", "")
                 callid = callid.replace('"', "")
                 callid = callid.replace("'", "")
                 page = page.replace('"', "")
