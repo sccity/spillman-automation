@@ -57,7 +57,7 @@ class incidents:
                     return
                   
                 elif error.find("'SSLV3_ALERT_HANDSHAKE_FAILURE'") != -1:
-                    return
+                    err.debug(traceback.format_exc())
 
                 else:
                     err.error(traceback.format_exc())
