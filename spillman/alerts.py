@@ -183,6 +183,14 @@ class alerts:
             try:
                 db = connect()
                 cursor = db.cursor()
+                unique_id = unique_id.replace('"', "")
+                unique_id = unique_id.replace("'", "")
+                self.agency = self.agency.replace('"', "")
+                self.agency = self.agency.replace("'", "")
+                callid = callid.replace('"', "")
+                callid = callid.replace("'", "")
+                page = page.replace('"', "")
+                page = page.replace("'", "")
                 sql = f"insert into page (uuid, agency, callid, data) values ('{unique_id}', '{self.agency}', '{callid}', '{page}')"
                 cursor.execute(sql)
                 db.commit()
