@@ -55,6 +55,9 @@ class incidents:
 
                 if error.find("'NoneType'") != -1:
                     return
+                  
+                elif error.find("'SSLV3_ALERT_HANDSHAKE_FAILURE'") != -1:
+                    return
 
                 else:
                     err.error(traceback.format_exc())
