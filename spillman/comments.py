@@ -194,16 +194,16 @@ class comments:
             db_gpx_y = "0"
         
         header = ("Preplan Map:\n"
-        + "https://sccity.nextgis.com/resource/52/display?panel=none&zoom=19&lon=" + db_gps_x + "&lat=" + db_gps_y + "\n"
+        + "https://gis.sccity.org/resource/52/display?panel=none&zoom=19&lon=" + db_gps_x + "&lat=" + db_gps_y + "\n"
         + "Priority: "
         + response
         + "\n" 
-        + "Responding Units:\n" 
+        + "Responding Units: " 
         + units 
         + "\n")
 
         footer = (
-            "Spillman Mobile Link for Incident:\n"
+            "Spillman Mobile:\n"
             + settings_data["spillman"]["touch_url"]
             + "secure/calldetail?longCallId="
             + callid + "&type=" + self.agency_type
@@ -215,13 +215,13 @@ class comments:
             + callid
             + "\n\nSpillman Automation: v"
             + self.version
-            + "\nCopyright Santa Clara City (UT)\nAll Rights Reserved"
+            + "\n©Santa Clara City (UT)\nAll Rights Reserved\nEOM\n"
         )
 
         cad_comments = (
             "\n----------START CAD COMMENTS----------\n"
             + cad_comment
-            + "\n\n-----------END CAD COMMENTS-----------\n\n"
+            + "\n-----------END CAD COMMENTS-----------\n\n"
             + footer
         )
 
