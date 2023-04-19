@@ -215,7 +215,7 @@ class comments:
             + callid
             + "\n\nSpillman Automation: v"
             + self.version
-            + "\n©Santa Clara City (UT)\nAll Rights Reserved\nEOM\n"
+            + "\n&copy;Santa Clara City (UT)\nAll Rights Reserved\nEOM\n"
         )
 
         cad_comments = (
