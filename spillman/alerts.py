@@ -159,6 +159,9 @@ class alerts:
         else:
             comment = comment
 
+        if zone is None:
+            zone = ""
+            
         page = f"""CALLID: {callid} CALL: {nature} GPS: {gps_y}, {gps_x} PLACE: {address} CITY: {city} ZONE: {zone} UNIT: {unit} DATE: {date} COMMENT:{comment}"""
         page.replace("'", "")
         page.replace('"', '')
@@ -212,7 +215,7 @@ class alerts:
                 try:
                     db = connect()
                     cursor = db.cursor()
-                    cursor.execute(f"update page set data = '{page}' where callid = '{callid}' and agency = '{self.agency}'")
+                    cursor.execute(f"""update page set data = '{page}' where callid = '{callid}' and agency = '{self.agency}'""")
                     db.commit()
                     cursor.close()
                     db.close()
