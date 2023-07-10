@@ -215,7 +215,7 @@ class alerts:
             db_page = results[3]
             
             if page == db_page:
-                return_code = 1
+                return_code = 99
                 err.info("Page data identical, not repaging")
             else:
                 try:
@@ -364,7 +364,7 @@ class alerts:
             db_page = results[3]
             
             if page == db_page:
-                return_code = 0
+                return_code = 99
                 err.info("Page data identical, not repaging")
             else:
                 try:
