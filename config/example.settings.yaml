@@ -3,6 +3,7 @@ global:
     loglevel: "INFO"
     nwsid: "UTC053"
     webdriver: "/usr/bin/chromedriver"
+    jira-log-api:
     smtp:
         host: ""
         port: 
