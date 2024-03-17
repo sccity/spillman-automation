@@ -32,7 +32,7 @@ class URLGetHandler(logging.Handler):
 
     def emit(self, record):
         log_entry = {
-            'app': 'Spillman Automation',
+            'app': 'Spillman Automation ' + settings_data["global"]["env"],
             'level': record.levelname,
             'function': record.funcName,
             'msg': record.getMessage()
