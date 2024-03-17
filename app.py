@@ -16,81 +16,86 @@
 # WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
 # See the License for the specific language governing permissions and
 # limitations under the License.
-import sys, os, time
+import sys, os, time, click
 import spillman as s
 from spillman.database import connect_read
 
-syslog = s.setup_logger("system", "system")
 
-pid = str(os.getpid())
+@click.command()
+@click.option("--paging", is_flag=True, help="Start digital paging process.")
+@click.option("--units", is_flag=True, help="Start unit status monitoring process.")
+@click.option("--misc", is_flag=True, help="Execute miscellaneous functions.")
+@click.option("--cleanup", is_flag=True, help="Perform cleanup operations.")
+@click.option("--check-config", is_flag=True, help="Check configuration.")
+@click.option("--test", is_flag=True, help="Test mode.")
+def main(paging, units, misc, cleanup, check_config, test):
+    syslog = s.setup_logger("system", "system")
+    pid = str(os.getpid())
 
-if len(sys.argv) == 1:
-    args = sys.argv
-    syslog.warning("No Option, use --help for options.")
-    exit(0)
+    if not any([paging, units, misc, cleanup, check_config]):
+        syslog.info("No option provided")
+        sys.exit(0)
 
-elif len(sys.argv) == 2:
-    args = sys.argv
-    arg1 = sys.argv[1]
-    arg2 = ""
+    if paging:
+        process_name = "paging"
+        process_description = "Digital Paging"
+        pidfile = (
+            "/var/run/spillman-paging.pid"
+            if os.access("/var/run", os.W_OK)
+            else "/tmp/spillman-paging.pid"
+        )
 
-elif len(sys.argv) == 3:
-    args = sys.argv
-    arg1 = sys.argv[1]
-    arg2 = sys.argv[2]
+    elif units:
+        process_name = "units"
+        process_description = "Unit Status Monitoring"
+        pidfile = (
+            "/var/run/spillman-units.pid"
+            if os.access("/var/run", os.W_OK)
+            else "/tmp/spillman-units.pid"
+        )
 
-else:
-    syslog.debug("No Option, use --help for options.")
-    exit(0)
+    elif misc:
+        process_name = "misc"
+        process_description = "Miscellaneous Functions"
+        pidfile = (
+            "/var/run/spillman-misc.pid"
+            if os.access("/var/run", os.W_OK)
+            else "/tmp/spillman-misc.pid"
+        )
 
-if len(args) > 1:
-    if arg1.lower() == "--paging":
-        if os.access("/var/run", os.W_OK) is True:
-            pidfile = "/var/run/spillman-paging.pid"
+    elif cleanup:
+        process_name = "cleanup"
+        process_description = "Cleanup Operations"
+        s.cleanup.main()
+        sys.exit(0)
 
-        else:
-            pidfile = "/tmp/spillman-paging.pid"
+    elif check_config:
+        print("Just making sure everything works!")
+        syslog.info("Just making sure everything works!")
+        sys.exit(0)
 
-        s.checkPidFile(pidfile)
+    s.checkPidFile(pidfile)
 
-        if os.path.isfile(pidfile):
-            syslog.info("Paging Process Already Running")
-            sys.exit()
+    if os.path.isfile(pidfile):
+        syslog.info(f"{process_description} Process Already Running")
+        sys.exit(0)
 
-        open(pidfile, "w").write(pid)
+    open(pidfile, "w").write(pid)
+    syslog.info(f"Starting {process_description}")
 
-        syslog.info("Starting Digital Paging")
+    if paging:
         while True:
             try:
-                agency_list = s.agency.get()
-                s.agency.paging(agency_list)
-
-                if arg2.lower() == "--test":
+                agency_list = s.AgencyProcessor.fetch_active_agencies()
+                s.AgencyProcessor.process_agency(agency_list)
+                if test:
                     break
-
             except KeyboardInterrupt:
                 syslog.info("\nInterrupted!")
                 os.unlink(pidfile)
-                exit(0)
+                sys.exit(0)
 
-        os.unlink(pidfile)
-
-    elif arg1.lower() == "--units":
-        if os.access("/var/run", os.W_OK) is True:
-            pidfile = "/var/run/spillman-units.pid"
-
-        else:
-            pidfile = "/tmp/spillman-units.pid"
-
-        s.checkPidFile(pidfile)
-
-        if os.path.isfile(pidfile):
-            syslog.info("Status Process Already Running")
-            sys.exit()
-
-        open(pidfile, "w").write(pid)
-
-        syslog.info("Starting Unit Status Functions")
+    elif units:
         while True:
             try:
                 db_ro = connect_read()
@@ -105,42 +110,22 @@ if len(args) > 1:
                     syslog.debug(f"Processing {agency_id} Units")
                     current_agency = s.status(agency_id)
                     current_agency.unit()
-                    
-                s.cleanup.main()
-                
-                if arg2.lower() == "--test":
-                    break
 
                 time.sleep(1)
 
             except KeyboardInterrupt:
                 syslog.info("\nInterrupted!")
                 os.unlink(pidfile)
-                exit(0)
+                sys.exit(0)
 
-        os.unlink(pidfile)
+        s.cleanup.main()
 
-    elif arg1.lower() == "--misc":
-        if os.access("/var/run", os.W_OK) is True:
-            pidfile = "/var/run/spillman-misc.pid"
-
-        else:
-            pidfile = "/tmp/spillman-misc.pid"
-
-        s.checkPidFile(pidfile)
-
-        if os.path.isfile(pidfile):
-            syslog.info("Misc Process Already Running")
-            sys.exit()
-
-        open(pidfile, "w").write(pid)
-
-        syslog.info("Executing Misc Functions")
+    elif misc:
         while True:
             try:
                 s.wx.main()
 
-                if arg2.lower() == "--test":
+                if test:
                     break
 
                 time.sleep(300)
@@ -148,20 +133,10 @@ if len(args) > 1:
             except KeyboardInterrupt:
                 syslog.info("\nInterrupted!")
                 os.unlink(pidfile)
-                exit(0)
+                sys.exit(0)
 
-        os.unlink(pidfile)
+    os.unlink(pidfile)
 
-    elif arg1.lower() == "--cleanup":
-        s.cleanup.main()
 
-    elif arg1.lower() == "--check-config":
-        print("Just making sure everything works!")
-        syslog.info("Just making sure everything works!")
-
-    else:
-        syslog.info("No option provided")
-else:
-    syslog.info("No option provided")
-
-exit(0)
+if __name__ == "__main__":
+    main()

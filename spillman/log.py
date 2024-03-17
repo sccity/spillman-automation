@@ -16,7 +16,7 @@
 # WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
 # See the License for the specific language governing permissions and
 # limitations under the License.
-import os, logging
+import os, logging, requests
 from logging.handlers import SMTPHandler
 from spillman.settings import settings_data
 
@@ -25,6 +25,22 @@ formatter = logging.Formatter(
     "%(levelname)s - %(asctime)s\nFunction: %(funcName)s\nMessage:\n%(message)s\n"
 )
 
+class URLGetHandler(logging.Handler):
+    def __init__(self, url):
+        super().__init__()
+        self.url = url
+
+    def emit(self, record):
+        log_entry = {
+            'app': 'Spillman Automation',
+            'level': record.levelname,
+            'function': record.funcName,
+            'msg': record.getMessage()
+        }
+        try:
+            requests.get(self.url, params=log_entry)
+        except Exception as e:
+            print(f"Failed to send log message via GET to {self.url}: {e}")
 
 def setup_logger(name, log_file, level=settings_data["global"]["loglevel"]):
     log_path = os.path.exists("./logs/")
@@ -50,11 +66,16 @@ def setup_logger(name, log_file, level=settings_data["global"]["loglevel"]):
         secure=(),
     )
     mail_handler.setFormatter(formatter)
+    
+    url = settings_data["global"]["jira-log-api"]
+    url_get_handler = URLGetHandler(url)
+    url_get_handler.setFormatter(formatter)
 
     logger = logging.getLogger(name)
     logger.setLevel(settings_data["global"]["loglevel"])
     logger.propagate = False
     logger.addHandler(handler)
-    logger.addHandler(mail_handler)
+    logger.addHandler(url_get_handler)
+    #logger.addHandler(mail_handler)
 
     return logger
