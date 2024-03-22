@@ -20,65 +20,68 @@ import logging, requests, xmltodict, traceback
 import spillman as s
 from .database import connect_read
 from .log import setup_logger
+from contextlib import contextmanager
 
 err = setup_logger("agency", "agency")
 
-
-class agency:
+class AgencyProcessor:
     def __init__(self):
-        return
+        pass
 
-    def get():
+    @staticmethod
+    def fetch_active_agencies():
         try:
-            db_ro = connect_read()
-            cursor = db_ro.cursor()
-            cursor.execute("select agency_id, agency_type, active911_id from agency where active = 1")
-
-        except:
-            cursor.close()
-            db_ro.close()
+            with db_connection_read() as db_ro:
+                cursor = db_ro.cursor()
+                cursor.execute("SELECT agency_id, agency_type, active911_id FROM agency WHERE active = 1")
+                agencies = cursor.fetchall()
+                return agencies
+        except Exception:
             err.error(traceback.format_exc())
-            return
+            return []
 
-        agencies = list(cursor.fetchall())
-        cursor.close()
+    @staticmethod
+    def process_agency(agency):
+        try:
+            agency_id, agency_type, agency_a911 = agency
+            current_agency = s.IncidentsProcessor(str(agency_id), str(agency_type))
+            agency_alerts = s.alerts(str(agency_id), str(agency_a911))
+
+            agency_calls = current_agency.active()
+            if agency_calls:
+                current_agency.insert(agency_calls)
+                agency_comments = s.comments(str(agency_id), str(agency_type))
+                agency_comments.get(agency_calls)
+                agency_alerts.incidents()
+                agency_alerts.comments()
+
+            non_agency_calls = current_agency.other()
+            if non_agency_calls:
+                current_agency.alerts(non_agency_calls)
+                agency_alerts.incidents()
+                agency_alerts.comments()
+
+        except Exception:
+            err.error(traceback.format_exc())
+
+def process_all_agencies():
+    try:
+        agency_processor = AgencyProcessor()
+        agencies = agency_processor.fetch_active_agencies()
+
+        for agency in agencies:
+            agency_processor.process_agency(agency)
+
+    except Exception:
+        err.error(traceback.format_exc())
+
+@contextmanager
+def db_connection_read():
+    db_ro = connect_read()
+    try:
+        yield db_ro
+    finally:
         db_ro.close()
-        return agencies
 
-    def agency_process(agency):
-        agency_id = agency[0]
-        agency_type = agency[1]
-        agency_a911 = agency[2]
-
-        current_agency = s.incidents(agency_id, agency_type)
-        agency_alerts = s.alerts(agency_id, agency_a911)
-        agency_calls = current_agency.active()
-
-        if agency_calls is None:
-            err.debug(f"No Active Calls for {agency_id}")
-
-        else:
-            current_agency.insert(agency_calls)
-            agency_comments = s.comments(agency_id, agency_type)
-            agency_comments.get(agency_calls)
-            agency_alerts.incidents()
-            agency_alerts.comments()
-
-        non_agency_calls = current_agency.other()
-
-        if not non_agency_calls:
-            err.debug("No Active Other Agency Calls")
-
-        else:
-            current_agency.alerts(non_agency_calls)
-            agency_alerts.incidents()
-            agency_alerts.comments()
-            
-    def paging(agency_list):
-        try:
-            for agency in agency_list:
-                s.agency.agency_process(agency)
-
-        except:
-            err.error(traceback.format_exc())
-            return
+if __name__ == "__main__":
+    process_all_agencies()

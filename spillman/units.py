@@ -18,7 +18,7 @@
 # limitations under the License.
 import json, requests, xmltodict, traceback, re
 from urllib.request import urlopen
-from .settings import settings_data
+from .settings import *
 from .database import connect, connect_read
 from .log import setup_logger
 
@@ -27,8 +27,8 @@ err = setup_logger("units", "units")
 
 class units:
     def __init__(self, agency):
-        self.api_url = settings_data["spillman-api"]["url"]
-        self.api_token = settings_data["spillman-api"]["token"]
+        self.api_url = spillman_api_url
+        self.api_token = spillman_api_token
         self.agency = agency.upper()
 
     def agency_units(self):

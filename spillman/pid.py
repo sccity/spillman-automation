@@ -22,11 +22,9 @@ import spillman as s
 
 err = s.setup_logger("system", "system")
 
-
 def checkPidFile(pid_file):
     try:
         stat = os.path.getmtime(pid_file)
-
     except FileNotFoundError:
         return
 
@@ -35,31 +33,22 @@ def checkPidFile(pid_file):
     duration_in_s = duration.total_seconds()
     diff = divmod(duration_in_s, 60)[0]
 
-    f = open(pid_file, "r")
-    current_pid = f.readline()
-    current_pid = int(current_pid.rstrip())
-    f.close()
-
-    if diff >= 1:
-        err.info("Stale process found... Terminating.")
-
-        try:
-            os.kill(current_pid, signal.SIGKILL)
-
-        except Exception as e:
-            error = format(str(e))
-
-            if error.find("'NoneType'") != -1:
-                pass
-
-            elif error.find("'No such process'") != -1:
-                pass
-
-            elif error.find("'Errno 3'") != -1:
-                pass
-
-            else:
-                err.info(traceback.format_exc())
-
-        os.unlink(pid_file)
-    return
+    try:
+        with open(pid_file, "r") as f:
+            current_pid = f.readline().strip()
+            current_pid = int(current_pid)
+        
+        if diff >= 1:
+            err.info("Stale process found... Terminating.")
+            
+            try:
+                os.kill(current_pid, signal.SIGTERM)
+            except ProcessLookupError:
+                pass  # Process already terminated or not found
+            except Exception as e:
+                err.info(f"Error while terminating process: {e}")
+            
+            os.unlink(pid_file)
+    
+    except Exception as e:
+        err.info(f"Error while checking PID file: {e}")

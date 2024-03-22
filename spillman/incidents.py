@@ -19,22 +19,21 @@
 import json, xmltodict, traceback, collections, uuid
 import spillman as s
 from urllib.request import urlopen
-from .settings import settings_data
+from .settings import *
 from .database import connect, connect_read
 from .log import setup_logger
 
 err = setup_logger("incidents", "incidents")
 
-
-class incidents:
+class IncidentsProcessor:
     def __init__(self, agency, agency_type):
-        self.api_url = settings_data["spillman-api"]["url"]
-        self.api_token = settings_data["spillman-api"]["token"]
+        self.api_url = spillman_api_url
+        self.api_token = spillman_api_token
         self.agency = agency.upper()
         self.agency_type = agency_type.lower()
         self.units = s.units(self.agency)
         self.agency_units = self.units.agency_units()
-
+        
     def active(self):
         api = f"{self.api_url}/cad/active?agency={self.agency}&token={self.api_token}"
         try:
@@ -55,7 +54,7 @@ class incidents:
 
                 if error.find("'NoneType'") != -1:
                     return
-                  
+
                 elif error.find("'SSLV3_ALERT_HANDSHAKE_FAILURE'") != -1:
                     err.debug(traceback.format_exc())
 
@@ -107,7 +106,7 @@ class incidents:
         else:
             for active_calls in calls:
                 self.insert_data(active_calls)
-
+                
     def insert_data(self, active_calls):
         try:
             callid = active_calls["call_id"]
@@ -291,7 +290,6 @@ class incidents:
             pre_alert_natures = ""
 
         comments = s.comments(self.agency, self.agency_type)
-
         if type(calls) == dict:
             try:
                 callid = calls.get("call_id")
@@ -427,7 +425,7 @@ class incidents:
 
                 if units is None:
                     return
-                  
+
                 elif units == "":
                     return
 
@@ -490,7 +488,7 @@ class incidents:
                         callid,
                         recid,
                         nature,
-                        self.agency,
+                        agency_id,
                         city,
                         zone,
                         address,
@@ -499,89 +497,108 @@ class incidents:
                         reported,
                     )
                     comments.process(callid)
-
-                    try:
-                        db = connect()
-                        cursor = db.cursor()
-                        sql = f"""update incidents set unit = 'PRE' where callid = '{callid}' and agency = '{self.agency}';"""
-                        cursor.execute(sql)
-
-                    except:
-                        cursor.close()
-                        db.close()
-                        err.error(traceback.format_exc())
-                        return
-
-                    db.commit()
-                    cursor.close()
-                    db.close()
                     return
 
-                else:
-                    err.debug(callid + " is not a pre alert call for " + self.agency)
+                if zone in pre_alert_zones:
+                    err.debug(callid + " is a pre alert zone call for " + self.agency)
+                    nature = "PRE ALERT - " + nature + " - " + city
+                    self.process(
+                        callid,
+                        recid,
+                        nature,
+                        agency_id,
+                        city,
+                        zone,
+                        address,
+                        gps_x,
+                        gps_y,
+                        reported,
+                    )
+                    comments.process(callid)
+                    return
 
-        else:
-            for active_calls in calls:
+                if nature in pre_alert_natures:
+                    err.debug(callid + " is a pre alert nature call for " + self.agency)
+                    nature = "PRE ALERT - " + nature + " - " + city
+                    self.process(
+                        callid,
+                        recid,
+                        nature,
+                        agency_id,
+                        city,
+                        zone,
+                        address,
+                        gps_x,
+                        gps_y,
+                        reported,
+                    )
+                    comments.process(callid)
+                    return
+
+                self.process(
+                    callid,
+                    recid,
+                    nature,
+                    agency_id,
+                    city,
+                    zone,
+                    address,
+                    gps_x,
+                    gps_y,
+                    reported,
+                )
+                comments.process(callid)
+
+        if type(calls) == list:
+            for call in calls:
                 try:
-                    callid = active_calls["call_id"]
+                    callid = call.get("call_id")
 
                     try:
-                        recid = active_calls["incident_id"]
+                        recid = call.get("incident_id")
                     except:
-                        recid = active_calls["call_id"]
+                        recid = call.get("call_id")
 
-                    agency_id = active_calls["agency"]
+                    agency_id = call.get("agency")
 
                     try:
-                        zone = active_calls["zone"]
+                        zone = call.get("zone")
                     except:
                         zone = "NONE"
 
                     try:
-                        unit = active_calls["responsible_unit"]
+                        unit = call.get("responsible_unit")
                     except:
                         unit = ""
 
-                    address = active_calls["address"]
-                    gps_x = active_calls["longitude"]
-                    gps_y = active_calls["latitude"]
-                    reported = active_calls["date"]
-                    call_type = active_calls["type"]
+                    address = call.get("address")
+                    gps_x = call.get("longitude")
+                    gps_y = call.get("latitude")
+                    reported = call.get("date")
+                    call_type = call.get("type")
 
                     try:
-                        db_ro = connect_read()
-                        cursor = db_ro.cursor()
-                        cursor.execute(
-                            f"SELECT `desc` from nature where abbr = '{active_calls['nature']}'"
-                        )
+                        try:
+                            db_ro = connect_read()
+                            cursor = db_ro.cursor()
+                            cursor.execute(
+                                f"SELECT `desc` from nature where abbr = '{call.get('nature')}'"
+                            )
+
+                        except Exception as e:
+                            cursor.close()
+                            db_ro.close()
+                            err.error(traceback.format_exc())
+                            return
 
                         db_nature = cursor.fetchone()
                         cursor.close()
                         db_ro.close()
-                        
-                        try:
-                            nature = db_nature[0]
-                        except:
-                            nature = "Unknown"
+                        nature = db_nature[0]
 
                     except:
-                        try:
-                            cursor.close()
-                            db_ro.close()
-                        except:
-                            err.info(traceback.format_exc())
-                            
-                        try:
-                            nature = active_calls["nature"]
-                        except:
-                            nature = "Unknown"
+                        nature = call.get("nature")
 
-                    if nature == "Unknown":
-                        try:
-                            nature = active_calls["nature"]
-                        except:
-                            nature = "Unknown"
-                            
                     if nature is None:
                         nature = "Unknown"
 
@@ -590,21 +607,22 @@ class incidents:
                             db_ro = connect_read()
                             cursor = db_ro.cursor()
                             cursor.execute(
-                                f"SELECT name from cities where abbr = '{active_calls['city']}'"
+                                f"SELECT name from cities where abbr = '{call.get('city')}'"
                             )
 
                         except KeyError:
                             try:
                                 cursor.execute("SELECT name from cities where abbr = 'WCO'")
-
                             except:
                                 cursor.close()
                                 db_ro.close()
-                                city = active_calls["city"]
+                                city = call.get("city")
 
                         except Exception as e:
+                            cursor.close()
+                            db_ro.close()
                             err.error(traceback.format_exc())
-                            continue
+                            return
 
                         db_city = cursor.fetchone()
                         cursor.close()
@@ -612,7 +630,11 @@ class incidents:
                         city = db_city[0]
 
                     except:
-                        city = active_calls["city"]
+                        city = call.get("city")
+
+                except KeyError:
+                    err.debug("CallID: " + callid + " missing incident ID")
+                    continue
 
                 except Exception as e:
                     err.error(traceback.format_exc())
@@ -625,7 +647,7 @@ class incidents:
                 elif unit is None:
                     err.debug(callid + " is missing a unit")
                     continue
-                    
+
                 else:
                     units = self.units.get(callid)
 
@@ -664,17 +686,20 @@ class incidents:
                     if units is None:
                         continue
 
+                    elif units == "":
+                        continue
+
                     elif (
                         (mutual_aid is True)
                         and (call_type_short == self.agency_type)
                         and (self.agency != agency_id)
-                        and (unit is not None)
                     ):
-
                         err.debug(callid + " is a mutual aid call for " + self.agency)
-
+                        if nature is None:
+                            nature = "Unknown"
+                        if city is None:
+                            city = "Unknown"
                         nature = "MUTUAL AID - " + nature + " - " + city
-
                         self.process(
                             callid,
                             recid,
@@ -687,10 +712,10 @@ class incidents:
                             gps_y,
                             reported,
                         )
-
                         comments.process(callid)
 
                         try:
+                            mutual_aid_units = mutual_aid_units.replace(" ", ",")
                             db = connect()
                             cursor = db.cursor()
 
@@ -713,15 +738,17 @@ class incidents:
                         db.close()
                         continue
 
-                    elif (zone in pre_alert_zones) and (nature in pre_alert_natures):
-                        err.debug(callid + " is a pre alert call for " + self.agency)
+                    else:
+                        err.debug(callid + " is not a mutual aid call for " + self.agency)
 
+                    if (zone in pre_alert_zones) and (nature in pre_alert_natures):
+                        err.debug(callid + " is a pre alert call for " + self.agency)
                         nature = "PRE ALERT - " + nature + " - " + city
                         self.process(
                             callid,
                             recid,
                             nature,
-                            self.agency,
+                            agency_id,
                             city,
                             zone,
                             address,
@@ -730,188 +757,232 @@ class incidents:
                             reported,
                         )
                         comments.process(callid)
-
-                        try:
-                            db = connect()
-                            cursor = db.cursor()
-                            sql = ""
-                            sql = f"""update incidents set unit = 'PRE' where callid = '{callid}' and agency = '{self.agency}';"""
-                            cursor.execute(sql)
-
-                        except:
-                            cursor.close()
-                            db.close()
-                            err.error(traceback.format_exc())
-                            continue
-
-                        db.commit()
-                        cursor.close()
-                        db.close()
                         continue
 
-                    else:
-                        err.debug(
-                            callid
-                            + " is not a pre alert or mutual aid call for "
-                            + self.agency
+                    if zone in pre_alert_zones:
+                        err.debug(callid + " is a pre alert zone call for " + self.agency)
+                        nature = "PRE ALERT - " + nature + " - " + city
+                        self.process(
+                            callid,
+                            recid,
+                            nature,
+                            agency_id,
+                            city,
+                            zone,
+                            address,
+                            gps_x,
+                            gps_y,
+                            reported,
                         )
+                        comments.process(callid)
+                        continue
 
-    def process(
-        self, callid, recid, nature, agency, city, zone, address, gps_x, gps_y, date
-    ):
+                    if nature in pre_alert_natures:
+                        err.debug(callid + " is a pre alert nature call for " + self.agency)
+                        nature = "PRE ALERT - " + nature + " - " + city
+                        self.process(
+                            callid,
+                            recid,
+                            nature,
+                            agency_id,
+                            city,
+                            zone,
+                            address,
+                            gps_x,
+                            gps_y,
+                            reported,
+                        )
+                        comments.process(callid)
+                        continue
+
+                    self.process(
+                        callid,
+                        recid,
+                        nature,
+                        agency_id,
+                        city,
+                        zone,
+                        address,
+                        gps_x,
+                        gps_y,
+                        reported,
+                    )
+                    comments.process(callid)
+
+    def process(self, callid, recid, nature, agency, city, zone, address, gps_x, gps_y, reported):
+        """
+        process is a method for updating or inserting an incident record
+
+        Args:
+        callid (str): call_id of incident
+        recid (str): record_id of incident
+        nature (str): nature of incident
+        agency (str): agency code
+        city (str): city of incident
+        zone (str): zone of incident
+        address (str): address of incident
+        gps_x (str): longitude of incident
+        gps_y (str): latitude of incident
+        reported (str): date of incident
+
+        Returns:
+        None
+        """
         try:
-            unique_id = uuid.uuid1()
-            sql = ""
-            sql = f"""
-            INSERT INTO
-            incidents(
-                uuid,
-                callid,
-                incidentid,
-                nature,
-                agency,
-                city,
-                zone,
-                address,
-                gps_x,
-                gps_y,
-                reported,
-                alert_sent)
-            values(
-                '{unique_id}',
-                '{callid}',
-                '{recid}',
-                '{nature}',
-                '{agency}',
-                '{city}',
-                '{zone}',
-                '{address}',
-                '{gps_x}',
-                '{gps_y}',
-                '{date}',
-                0);
-            """
+            gps_x = float(gps_x)
+        except:
+            gps_x = 0.0
 
-            try:
-                db = connect()
-                cursor = db.cursor()
-                cursor.execute(sql)
-                db.commit()
-                cursor.close()
-                db.close()
+        try:
+            gps_y = float(gps_y)
+        except:
+            gps_y = 0.0
 
-            except Exception as e:
-                cursor.close()
-                db.close()
-                error = format(str(e))
+        try:
+            reported = self.process_date(reported)
+        except:
+            reported = datetime.datetime.now().strftime("%Y-%m-%d %H:%M:%S")
 
-                if error.find("Lock wait timeout exceeded") != -1:
-                    return
-                    err.error(traceback.format_exc())
+        if (zone is None) or (zone == ""):
+            zone = "UNK"
 
-                if error.find("Duplicate entry") != -1:
-                    try:
-                        try:
-                            db_ro = connect_read()
-                            cursor = db_ro.cursor()
-                            sql = f"SELECT uuid, nature, city, address, incidentid from incidents where callid = '{callid}' and agency = '{self.agency}';"
-                            cursor.execute(sql)
-                            incident_results = cursor.fetchone()
-                            cursor.close()
-                            db_ro.close()
+        if (address is None) or (address == ""):
+            address = "Unknown"
 
-                        except:
-                            cursor.close()
-                            db_ro.close()
-                            err.error(traceback.format_exc())
-                            return
+        if recid is None:
+            recid = 0
 
-                        db_uuid = incident_results[0]
-                        db_nature = incident_results[1]
-                        db_city = incident_results[2]
-                        db_address = incident_results[3]
-                        db_incidentid = incident_results[4]
+        if recid == "":
+            recid = 0
 
-                        if nature != db_nature:
-                            try:
-                                db = connect()
-                                cursor = db.cursor()
-                                cursor.execute(
-                                    f"update incidents set nature = '{nature}', alert_sent = 0 where uuid = '{db_uuid}'"
-                                )
-                                db.commit()
-                                cursor.close()
-                                db.close()
+        try:
+            db = connect()
+            cursor = db.cursor()
 
-                            except:
-                                cursor.close()
-                                db.close()
-                                err.error(traceback.format_exc())
-                                return
+            sql = f"SELECT id from incidents where callid = '{callid}' and agency = '{agency}'"
 
-                        if city != db_city:
-                            try:
-                                db = connect()
-                                cursor = db.cursor()
-                                cursor.execute(
-                                    f"update incidents set city = '{city}', alert_sent = 0 where uuid = '{db_uuid}'"
-                                )
-                                db.commit()
-                                cursor.close()
-                                db.close()
+            cursor.execute(sql)
+            recid = cursor.fetchone()
 
-                            except:
-                                cursor.close()
-                                db.close()
-                                err.error(traceback.format_exc())
-                                return
+            if recid is not None:
+                recid = recid[0]
 
-                        if address != db_address:
-                            try:
-                                db = connect()
-                                cursor = db.cursor()
-                                cursor.execute(
-                                    f"update incidents set address = '{address}', alert_sent = 0 where uuid = '{db_uuid}'"
-                                )
-                                db.commit()
-                                cursor.close()
-                                db.close()
+                sql = (
+                    f"UPDATE incidents SET callid = %s, incident_id = %s, nature = %s, agency = %s, "
+                    "city = %s, zone = %s, address = %s, gps_x = %s, gps_y = %s, reported = %s WHERE id = %s"
+                )
+                val = (
+                    callid,
+                    recid,
+                    nature,
+                    agency,
+                    city,
+                    zone,
+                    address,
+                    gps_x,
+                    gps_y,
+                    reported,
+                    recid,
+                )
 
-                            except:
-                                cursor.close()
-                                db.close()
-                                err.error(traceback.format_exc())
-                                return
+            else:
+                sql = (
+                    "INSERT INTO incidents (callid, incident_id, nature, agency, city, zone, address, "
+                    "gps_x, gps_y, reported) VALUES (%s, %s, %s, %s, %s, %s, %s, %s, %s, %s)"
+                )
+                val = (
+                    callid,
+                    recid,
+                    nature,
+                    agency,
+                    city,
+                    zone,
+                    address,
+                    gps_x,
+                    gps_y,
+                    reported,
+                )
 
-                        if recid != db_incidentid:
-                            try:
-                                db = connect()
-                                cursor = db.cursor()
-                                cursor.execute(
-                                    f"update incidents set incidentid = '{recid}' where uuid = '{db_uuid}'"
-                                )
-                                db.commit()
-                                cursor.close()
-                                db.close()
+            cursor.execute(sql, val)
+            db.commit()
 
-                            except:
-                                cursor.close()
-                                db.close()
-                                err.error(traceback.format_exc())
-                                return
-
-                    except:
-                        err.debug(
-                            "Incident already exists in alert database for "
-                            + callid
-                            + " reported "
-                            + date
-                        )
-
-                else:
-                    err.error(traceback.format_exc())
-
-        except Exception as e:
+        except:
             err.error(traceback.format_exc())
-            
-        self.units.update(callid)
+
+        finally:
+            cursor.close()
+            db.close()
+
+    def process_date(self, date):
+        """
+        process_date is a method to convert string date to MySQL formatted datetime
+
+        Args:
+        date (str): date in string format
+
+        Returns:
+        str: MySQL formatted datetime
+        """
+        try:
+            date = datetime.datetime.strptime(date, "%m/%d/%Y %I:%M:%S %p")
+            return date.strftime("%Y-%m-%d %H:%M:%S")
+        except:
+            return date
+
+    def process_duration(self, duration):
+        """
+        process_duration is a method to convert string duration to integer seconds
+
+        Args:
+        duration (str): duration in string format
+
+        Returns:
+        int: duration in seconds
+        """
+        try:
+            if "day" in duration:
+                days = int(duration.split(" ")[0])
+                seconds = days * 24 * 60 * 60
+                return seconds
+            elif "hour" in duration:
+                hours = int(duration.split(" ")[0])
+                seconds = hours * 60 * 60
+                return seconds
+            elif "minute" in duration:
+                minutes = int(duration.split(" ")[0])
+                seconds = minutes * 60
+                return seconds
+            elif "second" in duration:
+                seconds = int(duration.split(" ")[0])
+                return seconds
+            else:
+                return 0
+        except:
+            return 0
+
+    def process_priority(self, priority):
+        """
+        process_priority is a method to convert string priority to integer
+
+        Args:
+        priority (str): priority in string format
+
+        Returns:
+        int: priority as integer
+        """
+        try:
+            if "low" in priority:
+                return 3
+            elif "medium" in priority:
+                return 2
+            elif "high" in priority:
+                return 1
+            else:
+                return 3
+        except:
+            return 3
+
+
+if __name__ == "__main__":
+    parse = Parse()
+    parse.main()

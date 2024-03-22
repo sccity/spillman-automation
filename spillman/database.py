@@ -17,24 +17,24 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 import pymysql
-from .settings import settings_data
+from .settings import *
 
 
 def connect():
     return pymysql.connect(
-        host=settings_data["database"]["host"],
-        user=settings_data["database"]["user"],
-        password=settings_data["database"]["password"],
-        database=settings_data["database"]["schema"],
+        host=db_host,
+        user=db_user,
+        password=db_password,
+        database=db_schema,
     )
 
 
 def connect_read():
     return pymysql.connect(
-        host=settings_data["database"]["host_ro"],
-        user=settings_data["database"]["user"],
-        password=settings_data["database"]["password"],
-        database=settings_data["database"]["schema"],
+        host=db_host_ro,
+        user=db_user,
+        password=db_password,
+        database=db_schema,
     )
 
 

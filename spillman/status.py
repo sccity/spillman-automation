@@ -21,7 +21,7 @@ from urllib.request import urlopen
 from datetime import datetime
 from .rlog import rlog
 from .alerts import alerts
-from .settings import settings_data
+from .settings import *
 from .database import connect, connect_read
 from requests.packages.urllib3.exceptions import InsecureRequestWarning
 from .log import setup_logger
@@ -33,11 +33,11 @@ requests.packages.urllib3.disable_warnings(InsecureRequestWarning)
 
 class status:
     def __init__(self, agency):
-        self.api_url = settings_data["spillman"]["url"]
-        self.api_usr = settings_data["spillman"]["user"]
-        self.api_pwd = settings_data["spillman"]["password"]
-        self.api_url = settings_data["spillman-api"]["url"]
-        self.api_token = settings_data["spillman-api"]["token"]
+        self.api_url = spillman_url
+        self.api_usr = spillman_user
+        self.api_pwd = spillman_password
+        self.api_url = spillman_api_url
+        self.api_token = spillman_api_token
         self.agency = agency.upper()
 
     def unit(self):
