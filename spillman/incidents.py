@@ -73,7 +73,6 @@ class IncidentsProcessor:
         try:
             try:
                 response = urlopen(api)
-                print(api)
                 input_json = json.loads(response.read())
                 calls = [
                     call

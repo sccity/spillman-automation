@@ -91,8 +91,7 @@ def main(paging, units, misc, cleanup, check_config, test):
     if paging:
         while True:
             try:
-                agency_list = s.AgencyProcessor.fetch_active_agencies()
-                s.AgencyProcessor.process_agency(agency_list)
+                s.process_all_agencies()
                 if test:
                     break
             except KeyboardInterrupt:
