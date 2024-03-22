@@ -1,0 +1,34 @@
+global:
+    env: "PROD"
+    loglevel: "WARNING"
+    nwsid: "UTC053"
+    webdriver: "/usr/bin/chromedriver"
+    smtp:
+        host: "email-smtp.us-west-2.amazonaws.com"
+        port: 587
+        user: "AKIAWIQFMQUIQPXB6NCR"
+        pass: "BM1oX6usC4cVHQH//iz0AS6FBMlMo82fvXVHIW77Zzto"
+        from: "spillman-automation@email.scifr.net"
+        to: "lhaynie@sccity.org"
+database:
+    schema: "washco-prod"
+    user: "washco-prod"
+    password: "1T2s#wG0nWoA"
+    host: "web-prod.clhebnwu4isa.us-west-2.rds.amazonaws.com"
+    host_ro: "web-prod-read.clhebnwu4isa.us-west-2.rds.amazonaws.com"
+spillman-api:
+    url: "https://spillmanapi.scifire.us"
+    token: "1983c8ec-ad4d-11ed-afa1-0242ac120002"
+spillman:
+    url: "https://dixie911.org:4443/DataExchange/REST"
+    touch_url: "https://dixie911.org:4443/touch/"
+    user: "analytics"
+    password: "AY64.zsVpaupb6m-gam6"
+    sendrlog: "Y"
+active911:
+    sendalerts: "Y"
+    update_delay: 120
+    snpp:
+        host: "snpp.active911.com"
+        port: 444
+        timeout: 5
