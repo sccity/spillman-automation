@@ -1,4 +1,4 @@
 #!/bin/bash
 cd /app
-exec python -u app.py --paging & 
-exec python -u app.py --misc
+python -u app.py --paging & 
+python -u app.py --misc
