@@ -19,7 +19,7 @@
 import json, xmltodict, traceback, collections, uuid
 import spillman as s
 from urllib.request import urlopen
-from .settings import settings_data
+from .settings import *
 from .database import connect, connect_read
 from .log import setup_logger
 
@@ -27,8 +27,8 @@ err = setup_logger("incidents", "incidents")
 
 class IncidentsProcessor:
     def __init__(self, agency, agency_type):
-        self.api_url = settings_data["spillman-api"]["url"]
-        self.api_token = settings_data["spillman-api"]["token"]
+        self.api_url = spillman_api_url
+        self.api_token = spillman_api_token
         self.agency = agency.upper()
         self.agency_type = agency_type.lower()
         self.units = s.units(self.agency)

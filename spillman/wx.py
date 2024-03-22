@@ -20,13 +20,13 @@ import requests, traceback
 import uuid
 from lxml import etree
 from datetime import datetime
-from .settings import settings_data
+from .settings import *
 from .database import connect, connect_read
 from .log import setup_logger
 
 err = setup_logger("wx", "wx")
 
-nwsid = settings_data["global"]["nwsid"]
+nwsid = nwsid
 
 
 def main():

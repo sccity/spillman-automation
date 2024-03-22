@@ -21,7 +21,7 @@ import uuid, re
 from urllib.request import urlopen
 import spillman as s
 from datetime import datetime
-from .settings import settings_data
+from .settings import *
 from .settings import version_data
 from .database import connect, connect_read
 from .log import setup_logger
@@ -32,10 +32,10 @@ err = setup_logger("comments", "comments")
 class comments:
     def __init__(self, agency, agency_type):
         self.version = version_data["version"]
-        self.env = settings_data["global"]["env"]
-        self.api_url = settings_data["spillman-api"]["url"]
-        self.api_token = settings_data["spillman-api"]["token"]
-        self.delay = settings_data["active911"]["update_delay"]
+        self.env = env
+        self.api_url = spillman_api_url
+        self.api_token = spillman_api_token
+        self.delay = active911_update_delay
         self.agency = agency.upper()
         self.agency_type = agency_type.lower()
         self.units = s.units(self.agency)
@@ -204,7 +204,7 @@ class comments:
 
         footer = (
             "Spillman Mobile:\n"
-            + settings_data["spillman"]["touch_url"]
+            + spillman_touch_url
             + "secure/calldetail?longCallId="
             + callid + "&type=" + self.agency_type
             + "\n\n"
