@@ -67,7 +67,7 @@ def setup_logger(name, log_file, level=settings_data["global"]["loglevel"]):
     )
     mail_handler.setFormatter(formatter)
     
-    url = settings_data["global"]["jira-log-api"]
+    url = jira_log_api
     url_get_handler = URLGetHandler(url)
     url_get_handler.setFormatter(formatter)
 
