@@ -26,6 +26,5 @@ COPY . /app
 RUN mkdir logs
 RUN chown -R sccity:sccity /app && chmod -R 775 /app
 RUN chmod a+x start.sh
-RUN git pull origin prod
 USER sccity
 CMD ["./start.sh"]
