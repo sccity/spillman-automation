@@ -9,6 +9,6 @@ services:
     environment:
       - TZ=America/Denver
     env_file:
-      - stack.env
+      - ../stack.env
     restart: unless-stopped
     user: "1435:1435"
