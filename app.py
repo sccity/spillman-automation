@@ -16,7 +16,12 @@
 # WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
 # See the License for the specific language governing permissions and
 # limitations under the License.
-import sys, os, time
+import os, sys
+from dotenv import load_dotenv
+
+load_dotenv()
+
+import time
 import spillman as s
 from spillman.database import connect_read
 
@@ -105,9 +110,9 @@ if len(args) > 1:
                     syslog.debug(f"Processing {agency_id} Units")
                     current_agency = s.status(agency_id)
                     current_agency.unit()
-                    
+
                 s.cleanup.main()
-                
+
                 if arg2.lower() == "--test":
                     break
 

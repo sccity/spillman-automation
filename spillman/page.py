@@ -19,12 +19,12 @@
 import traceback
 from re import search
 from telnetlib import Telnet
-from .settings import settings_data
+from .settings import *
 from .log import setup_logger
 
 err = setup_logger("page", "page")
 
-sendalerts = settings_data["active911"]["sendalerts"]
+sendalerts = active911_send_alerts
 
 
 def send_page(page, a911_id):
@@ -43,9 +43,9 @@ def send_page(page, a911_id):
         return
 
     with Telnet(
-        settings_data["active911"]["snpp"]["host"],
-        settings_data["active911"]["snpp"]["port"],
-        timeout=settings_data["active911"]["snpp"]["timeout"],
+        active911_snpp_host,
+        active911_snpp_port,
+        active911_snpp_timeout,
     ) as tn:
         try:
             tn.set_debuglevel(0)

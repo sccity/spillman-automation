@@ -21,7 +21,7 @@ import uuid, re
 from urllib.request import urlopen
 import spillman as s
 from datetime import datetime
-from .settings import settings_data
+from .settings import *
 from .settings import version_data
 from .database import connect, connect_read
 from .log import setup_logger
@@ -32,10 +32,10 @@ err = setup_logger("comments", "comments")
 class comments:
     def __init__(self, agency, agency_type):
         self.version = version_data["version"]
-        self.env = settings_data["global"]["env"]
-        self.api_url = settings_data["spillman-api"]["url"]
-        self.api_token = settings_data["spillman-api"]["token"]
-        self.delay = settings_data["active911"]["update_delay"]
+        self.env = env
+        self.api_url = spillman_api_url
+        self.api_token = spillman_api_token
+        self.delay = active911_update_delay
         self.agency = agency.upper()
         self.agency_type = agency_type.lower()
         self.units = s.units(self.agency)
@@ -97,8 +97,7 @@ class comments:
             units = self.units.get(callid)
         except:
             units = "Unknown"
-            
-            
+
         try:
             if units.find("dict") != -1:
                 units = "Unknown"
@@ -170,7 +169,7 @@ class comments:
             cad_comment,
             flags=re.MULTILINE,
         )
-        
+
         try:
             db_ro = connect_read()
             cursor = db_ro.cursor()
@@ -192,21 +191,29 @@ class comments:
         except:
             db_gps_x = "0"
             db_gpx_y = "0"
-        
-        header = ("Preplan Map:\n"
-        + "https://gis.sccity.org/resource/52/display?panel=none&zoom=19&lon=" + db_gps_x + "&lat=" + db_gps_y + "\n"
-        + "Priority: "
-        + response
-        + "\n" 
-        + "Responding Units: " 
-        + units 
-        + "\n")
+
+        header = (
+            "Preplan Map:\n"
+            + "https://gis.sccity.org/resource/52/display?panel=none&zoom=19&lon="
+            + db_gps_x
+            + "&lat="
+            + db_gps_y
+            + "\n"
+            + "Priority: "
+            + response
+            + "\n"
+            + "Responding Units: "
+            + units
+            + "\n"
+        )
 
         footer = (
             "Spillman Mobile:\n"
-            + settings_data["spillman"]["touch_url"]
+            + spillman_touch_url
             + "secure/calldetail?longCallId="
-            + callid + "&type=" + self.agency_type
+            + callid
+            + "&type="
+            + self.agency_type
             + "\n\n"
             + "Report an Issue:\n"
             + "https://help.scifr.net/index.php?a=add&catid=2&custom1="

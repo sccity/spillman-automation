@@ -20,13 +20,13 @@ import requests, traceback
 import uuid
 from lxml import etree
 from datetime import datetime
-from .settings import settings_data
+from .settings import *
 from .database import connect, connect_read
 from .log import setup_logger
 
 err = setup_logger("wx", "wx")
 
-nwsid = settings_data["global"]["nwsid"]
+nwsid = nwsid
 
 
 def main():
@@ -98,7 +98,9 @@ def main():
     try:
         db_ro = connect_read()
         cursor = db_ro.cursor()
-        cursor.execute("select agency_id, agency_type, active911_id from agency where active = 1 and nws_alerts = 1")
+        cursor.execute(
+            "select agency_id, agency_type, active911_id from agency where active = 1 and nws_alerts = 1"
+        )
         agencies = list(cursor.fetchall())
         cursor.close()
         db_ro.close()

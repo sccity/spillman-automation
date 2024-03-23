@@ -161,21 +161,23 @@ class alerts:
 
         if zone is None:
             zone = ""
-            
+
         if city is None:
             city = ""
-            
+
         if city == "{'}":
             city = ""
-            
+
         page = f"""CALLID: {callid} CALL: {nature} GPS: {gps_y}, {gps_x} PLACE: {address} CITY: {city} ZONE: {zone} UNIT: {unit} DATE: {date} COMMENT:{comment}"""
         page.replace("'", "")
-        page.replace('"', '')
+        page.replace('"', "")
 
         try:
             db_ro = connect_read()
             cursor = db_ro.cursor()
-            cursor.execute(f"select * from page where callid = '{callid}' and agency = '{self.agency}'")
+            cursor.execute(
+                f"select * from page where callid = '{callid}' and agency = '{self.agency}'"
+            )
 
         except Exception as e:
             cursor.close()
@@ -186,9 +188,9 @@ class alerts:
         if cursor.rowcount == 0:
             cursor.close()
             db_ro.close()
-            
+
             unique_id = uuid.uuid1()
-            
+
             try:
                 db = connect()
                 cursor = db.cursor()
@@ -205,15 +207,15 @@ class alerts:
                 cursor.close()
                 db.close()
                 err.error(traceback.format_exc())
-                return 
-              
+                return
+
             return_code = send_page(page, self.a911_id)
 
         else:
             results = cursor.fetchone()
             cursor.close()
             db_page = results[3]
-            
+
             if page == db_page:
                 return_code = 99
                 err.info("Page data identical, not repaging")
@@ -221,7 +223,9 @@ class alerts:
                 try:
                     db = connect()
                     cursor = db.cursor()
-                    cursor.execute(f"""update page set data = '{page}' where callid = '{callid}' and agency = '{self.agency}'""")
+                    cursor.execute(
+                        f"""update page set data = '{page}' where callid = '{callid}' and agency = '{self.agency}'"""
+                    )
                     db.commit()
                     cursor.close()
                     db.close()
@@ -229,15 +233,17 @@ class alerts:
                     cursor.close()
                     db.close()
                     err.error(traceback.format_exc())
-                    return 
-                  
+                    return
+
                 return_code = send_page(page, self.a911_id)
 
         if return_code == 0:
-            try:    
+            try:
                 db = connect()
                 cursor = db.cursor()
-                cursor.execute(f"update incidents set alert_sent = 1 where callid = '{callid}' and agency = '{self.agency}'")
+                cursor.execute(
+                    f"update incidents set alert_sent = 1 where callid = '{callid}' and agency = '{self.agency}'"
+                )
                 db.commit()
                 cursor.close()
                 db.close()
@@ -252,7 +258,7 @@ class alerts:
                         db.commit()
                         cursor.close()
                         db.close()
-                
+
                     except:
                         cursor.close()
                         db.close()
@@ -324,11 +330,13 @@ class alerts:
 
         page = f"""CALLID: {callid} CALL: {nature} GPS: {gps_y}, {gps_x} PLACE: {address} CITY: {city} ZONE: {zone} UNIT: {unit_list} DATE: {date} COMMENT:{comment}"""
         page = page.replace("'", "")
-        
+
         try:
             db_ro = connect_read()
             cursor = db_ro.cursor()
-            cursor.execute(f"select * from page where callid = '{callid}' and agency = '{self.agency}'")
+            cursor.execute(
+                f"select * from page where callid = '{callid}' and agency = '{self.agency}'"
+            )
 
         except Exception as e:
             cursor.close()
@@ -339,9 +347,9 @@ class alerts:
         if cursor.rowcount == 0:
             cursor.close()
             db_ro.close()
-            
+
             unique_id = uuid.uuid1()
-            
+
             try:
                 db = connect()
                 cursor = db.cursor()
@@ -354,15 +362,15 @@ class alerts:
                 cursor.close()
                 db.close()
                 err.error(traceback.format_exc())
-                return 
-              
+                return
+
             return_code = send_page(page, self.a911_id)
 
         else:
             results = cursor.fetchone()
             cursor.close()
             db_page = results[3]
-            
+
             if page == db_page:
                 return_code = 99
                 err.info("Page data identical, not repaging")
@@ -370,7 +378,9 @@ class alerts:
                 try:
                     db = connect()
                     cursor = db.cursor()
-                    cursor.execute(f"update page set data = '{page}' where callid = '{callid}' and agency = '{self.agency}'")
+                    cursor.execute(
+                        f"update page set data = '{page}' where callid = '{callid}' and agency = '{self.agency}'"
+                    )
                     db.commit()
                     cursor.close()
                     db.close()
@@ -378,8 +388,8 @@ class alerts:
                     cursor.close()
                     db.close()
                     err.error(traceback.format_exc())
-                    return 
-                  
+                    return
+
                 return_code = send_page(page, self.a911_id)
 
         if return_code == 0:
@@ -436,7 +446,7 @@ class alerts:
 
         else:
             comment = comment
-            
+
         page = f"""CALLID: {callid} CALL: {nature} GPS: {gps_y}, {gps_x} PLACE: {address} CITY: {city} ZONE: {zone} UNIT: {unit} DATE: {date} COMMENT:{comment}"""
         page = page.replace("'", "")
 
@@ -457,6 +467,6 @@ class alerts:
             return
 
         a911_id = db_response[0]
-        
+
         send_page(page, a911_id)
         return

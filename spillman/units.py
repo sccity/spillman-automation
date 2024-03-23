@@ -18,7 +18,7 @@
 # limitations under the License.
 import json, requests, xmltodict, traceback, re
 from urllib.request import urlopen
-from .settings import settings_data
+from .settings import *
 from .database import connect, connect_read
 from .log import setup_logger
 
@@ -27,8 +27,8 @@ err = setup_logger("units", "units")
 
 class units:
     def __init__(self, agency):
-        self.api_url = settings_data["spillman-api"]["url"]
-        self.api_token = settings_data["spillman-api"]["token"]
+        self.api_url = spillman_api_url
+        self.api_token = spillman_api_token
         self.agency = agency.upper()
 
     def agency_units(self):
@@ -43,20 +43,20 @@ class units:
             cursor.close()
             db_ro.close()
             return
-          
+
         try:
             units = [list[0] for list in cursor.fetchall()]
             units = ",".join(units)
         except:
             units = "ERR"
-        
+
         if units is None:
             units = "ERR"
         elif units == "":
             units = "ERR"
         else:
             units = units
-        
+
         return units
 
     def update(self, callid):
@@ -252,12 +252,20 @@ class units:
             except Exception as e:
                 err.error(traceback.format_exc())
                 return
-              
+
             if "dict_values" in unit_list:
-                unit_list = re.sub("dict_values\(\[\{'call_id': '[^']*', 'agency': '[^']*', 'unit': '", '', unit_list)
-                unit_list = re.sub("', 'status': '[^']*', 'zone': '[^']*', 'latitude': '[^']*', 'longitude': '[^']*', 'description': '[^']*', 'date': '[^']*'\}]\)", '', unit_list)
-            
-            unit_list = re.sub("\s+", ' ', unit_list)
+                unit_list = re.sub(
+                    "dict_values\(\[\{'call_id': '[^']*', 'agency': '[^']*', 'unit': '",
+                    "",
+                    unit_list,
+                )
+                unit_list = re.sub(
+                    "', 'status': '[^']*', 'zone': '[^']*', 'latitude': '[^']*', 'longitude': '[^']*', 'description': '[^']*', 'date': '[^']*'\}]\)",
+                    "",
+                    unit_list,
+                )
+
+            unit_list = re.sub("\s+", " ", unit_list)
             return unit_list
 
         except Exception as e:

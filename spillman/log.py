@@ -18,12 +18,13 @@
 # limitations under the License.
 import os, logging, requests
 from logging.handlers import SMTPHandler
-from spillman.settings import settings_data
+from .settings import *
 
 
 formatter = logging.Formatter(
     "%(levelname)s - %(asctime)s\nFunction: %(funcName)s\nMessage:\n%(message)s\n"
 )
+
 
 class URLGetHandler(logging.Handler):
     def __init__(self, url):
@@ -32,17 +33,18 @@ class URLGetHandler(logging.Handler):
 
     def emit(self, record):
         log_entry = {
-            'app': 'Spillman Automation ' + settings_data["global"]["env"],
-            'level': record.levelname,
-            'function': record.funcName,
-            'msg': record.getMessage()
+            "app": "Spillman Automation " + env,
+            "level": record.levelname,
+            "function": record.funcName,
+            "msg": record.getMessage(),
         }
         try:
             requests.get(self.url, params=log_entry)
         except Exception as e:
             print(f"Failed to send log message via GET to {self.url}: {e}")
 
-def setup_logger(name, log_file, level=settings_data["global"]["loglevel"]):
+
+def setup_logger(name, log_file, level=loglevel):
     log_path = os.path.exists("./logs/")
     if not log_path:
         os.makedirs("./logs")
@@ -50,32 +52,32 @@ def setup_logger(name, log_file, level=settings_data["global"]["loglevel"]):
     handler.setFormatter(formatter)
 
     credentials = (
-        settings_data["global"]["smtp"]["user"],
-        settings_data["global"]["smtp"]["pass"],
+        smtp_user,
+        smtp_pass,
     )
 
     mail_handler = SMTPHandler(
         mailhost=(
-            settings_data["global"]["smtp"]["host"],
-            settings_data["global"]["smtp"]["port"],
+            smtp_host,
+            smtp_port,
         ),
-        fromaddr=settings_data["global"]["smtp"]["from"],
-        toaddrs=settings_data["global"]["smtp"]["to"],
+        fromaddr=smtp_from,
+        toaddrs=smtp_to,
         subject="Spillman Automation - Application Error",
         credentials=credentials,
         secure=(),
     )
     mail_handler.setFormatter(formatter)
-    
-    url = settings_data["global"]["jira-log-api"]
+
+    url = jira_log_api
     url_get_handler = URLGetHandler(url)
     url_get_handler.setFormatter(formatter)
 
     logger = logging.getLogger(name)
-    logger.setLevel(settings_data["global"]["loglevel"])
+    logger.setLevel(loglevel)
     logger.propagate = False
     logger.addHandler(handler)
     logger.addHandler(url_get_handler)
-    #logger.addHandler(mail_handler)
+    # logger.addHandler(mail_handler)
 
     return logger

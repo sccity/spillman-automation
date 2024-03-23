@@ -32,7 +32,9 @@ class agency:
         try:
             db_ro = connect_read()
             cursor = db_ro.cursor()
-            cursor.execute("select agency_id, agency_type, active911_id from agency where active = 1")
+            cursor.execute(
+                "select agency_id, agency_type, active911_id from agency where active = 1"
+            )
 
         except:
             cursor.close()
@@ -73,7 +75,7 @@ class agency:
             current_agency.alerts(non_agency_calls)
             agency_alerts.incidents()
             agency_alerts.comments()
-            
+
     def paging(agency_list):
         try:
             for agency in agency_list:

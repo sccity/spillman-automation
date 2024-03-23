@@ -19,7 +19,7 @@
 import json, xmltodict, traceback, collections, uuid
 import spillman as s
 from urllib.request import urlopen
-from .settings import settings_data
+from .settings import *
 from .database import connect, connect_read
 from .log import setup_logger
 
@@ -28,8 +28,8 @@ err = setup_logger("incidents", "incidents")
 
 class incidents:
     def __init__(self, agency, agency_type):
-        self.api_url = settings_data["spillman-api"]["url"]
-        self.api_token = settings_data["spillman-api"]["token"]
+        self.api_url = spillman_api_url
+        self.api_token = spillman_api_token
         self.agency = agency.upper()
         self.agency_type = agency_type.lower()
         self.units = s.units(self.agency)
@@ -55,7 +55,7 @@ class incidents:
 
                 if error.find("'NoneType'") != -1:
                     return
-                  
+
                 elif error.find("'SSLV3_ALERT_HANDSHAKE_FAILURE'") != -1:
                     err.debug(traceback.format_exc())
 
@@ -427,7 +427,7 @@ class incidents:
 
                 if units is None:
                     return
-                  
+
                 elif units == "":
                     return
 
@@ -558,7 +558,7 @@ class incidents:
                         db_nature = cursor.fetchone()
                         cursor.close()
                         db_ro.close()
-                        
+
                         try:
                             nature = db_nature[0]
                         except:
@@ -570,7 +570,7 @@ class incidents:
                             db_ro.close()
                         except:
                             err.info(traceback.format_exc())
-                            
+
                         try:
                             nature = active_calls["nature"]
                         except:
@@ -581,7 +581,7 @@ class incidents:
                             nature = active_calls["nature"]
                         except:
                             nature = "Unknown"
-                            
+
                     if nature is None:
                         nature = "Unknown"
 
@@ -595,7 +595,9 @@ class incidents:
 
                         except KeyError:
                             try:
-                                cursor.execute("SELECT name from cities where abbr = 'WCO'")
+                                cursor.execute(
+                                    "SELECT name from cities where abbr = 'WCO'"
+                                )
 
                             except:
                                 cursor.close()
@@ -625,7 +627,7 @@ class incidents:
                 elif unit is None:
                     err.debug(callid + " is missing a unit")
                     continue
-                    
+
                 else:
                     units = self.units.get(callid)
 
@@ -913,5 +915,5 @@ class incidents:
 
         except Exception as e:
             err.error(traceback.format_exc())
-            
+
         self.units.update(callid)

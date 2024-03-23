@@ -22,13 +22,13 @@ from selenium.webdriver.chrome.options import Options
 from selenium.webdriver.chrome.service import Service
 from selenium.webdriver.common.by import By
 from selenium.webdriver.support.ui import Select
-from .settings import settings_data
+from .settings import *
 from .database import connect_read
 from .log import setup_logger
 
 err = setup_logger("rlog", "rlog")
 
-s = Service(settings_data["global"]["webdriver"])
+s = Service(webdriver)
 o = Options()
 o.add_argument("--no-sandbox")
 o.add_argument("--disable-extensions")
@@ -36,17 +36,24 @@ o.add_argument("--disable-dev-shm-usage")
 o.add_argument("--headless")
 o.add_argument("--remote-debugging-port=9222")
 
-api_usr = settings_data["spillman"]["user"]
-api_pwd = settings_data["spillman"]["password"]
+api_usr = spillman_user
+api_pwd = spillman_password
 
-sendrlog = settings_data["spillman"]["sendrlog"]
+sendrlog = spillman_send_rlog
 
 
 def rlog(rlog_unit, rlog_status, rlog_comment):
     if sendrlog == "N":
-        err.info("RLOG - Unit: " + rlog_unit + " Status: " + rlog_status + " Comment: " + rlog_comment)
+        err.info(
+            "RLOG - Unit: "
+            + rlog_unit
+            + " Status: "
+            + rlog_status
+            + " Comment: "
+            + rlog_comment
+        )
         return
-      
+
     try:
         db_ro = connect_read()
         cursor = db_ro.cursor()
@@ -75,7 +82,7 @@ def rlog(rlog_unit, rlog_status, rlog_comment):
 
     try:
         browser = webdriver.Chrome(service=s, options=o)
-        browser.get(settings_data["spillman"]["touch_url"])
+        browser.get(spillman_touch_url)
 
     except:
         err.error(traceback.format_exc())
@@ -100,7 +107,7 @@ def rlog(rlog_unit, rlog_status, rlog_comment):
     time.sleep(0.1)
 
     try:
-        browser.get(settings_data["spillman"]["touch_url"] + "secure/radiolog")
+        browser.get(spillman_touch_url + "secure/radiolog")
     except:
         return
 

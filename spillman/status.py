@@ -21,7 +21,7 @@ from urllib.request import urlopen
 from datetime import datetime
 from .rlog import rlog
 from .alerts import alerts
-from .settings import settings_data
+from .settings import *
 from .database import connect, connect_read
 from requests.packages.urllib3.exceptions import InsecureRequestWarning
 from .log import setup_logger
@@ -34,10 +34,10 @@ requests.packages.urllib3.disable_warnings(InsecureRequestWarning)
 class status:
     def __init__(self, agency):
         self.api_url = settings_data["spillman"]["url"]
-        self.api_usr = settings_data["spillman"]["user"]
-        self.api_pwd = settings_data["spillman"]["password"]
-        self.api_url = settings_data["spillman-api"]["url"]
-        self.api_token = settings_data["spillman-api"]["token"]
+        self.api_usr = spillman_user
+        self.api_pwd = spillman_password
+        self.api_url = spillman_api_url
+        self.api_token = spillman_api_token
         self.agency = agency.upper()
 
     def unit(self):
@@ -94,7 +94,9 @@ class status:
                     try:
                         db_ro = connect_read()
                         cursor = db_ro.cursor()
-                        cursor.execute(f"SELECT auto_rlog_flag from agency where agency_id = '{self.agency}'")
+                        cursor.execute(
+                            f"SELECT auto_rlog_flag from agency where agency_id = '{self.agency}'"
+                        )
 
                         db_response = cursor.fetchone()
                         rlog_flag = db_response[0]
@@ -114,7 +116,9 @@ class status:
                     try:
                         db_ro = connect_read()
                         cursor = db_ro.cursor()
-                        cursor.execute(f"SELECT unit, cross_staff_flag, cross_staff_units, always_on_flag from units where unit = '{unit}' and agency = '{self.agency}'")
+                        cursor.execute(
+                            f"SELECT unit, cross_staff_flag, cross_staff_units, always_on_flag from units where unit = '{unit}' and agency = '{self.agency}'"
+                        )
                         db_response = cursor.fetchone()
                         cross_staff_flag = db_response[1]
                         cross_staff_units = db_response[2]
@@ -158,7 +162,7 @@ class status:
                         err.debug(f"{self.agency}:{unit} - ONAIR Timeout 1hr")
 
                         rlog(unit, "ONDT", "ONAIR TIMEOUT")
-                        callid = (unit + "-" + time_str)
+                        callid = unit + "-" + time_str
 
                         alerts.send(
                             self.agency,
@@ -179,7 +183,8 @@ class status:
                         rlog(unit, "ONAIR", "AOA - AVAILABLE NOT IN QUARTERS")
 
                     elif (cross_staff_flag == 1) and (
-                        status in "PAGED, ENRT, ARRVD, ARVDH, ENRTH, STAGE, ONAIR, OOSRV, 7"
+                        status
+                        in "PAGED, ENRT, ARRVD, ARVDH, ENRTH, STAGE, ONAIR, OOSRV, 7"
                     ):
                         for cs_units in cross_staff_units.split(","):
                             cs_unit = cs_units.strip()

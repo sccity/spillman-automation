@@ -28,7 +28,9 @@ def main():
         try:
             db_ro = connect_read()
             cursor = db_ro.cursor()
-            cursor.execute("select agency, callid from incidents where alert_sent = 0 and TIMEDIFF(now(), reported) > '24:00:00'")
+            cursor.execute(
+                "select agency, callid from incidents where alert_sent = 0 and TIMEDIFF(now(), reported) > '24:00:00'"
+            )
 
         except:
             cursor.close()
