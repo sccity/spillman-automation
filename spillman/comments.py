@@ -208,12 +208,7 @@ class comments:
         )
 
         footer = (
-            "Report an Issue:\n"
-            + "https://help.scifr.net/index.php?a=add&catid=2&custom1="
-            + self.agency
-            + "&custom2="
-            + callid
-            + "\n\nSpillman Automation: v"
+            "Spillman Automation: v"
             + self.version
             + "\nCopyright Santa Clara City (UT)\nAll Rights Reserved\nEOM\n"
         )
