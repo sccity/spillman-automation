@@ -208,14 +208,7 @@ class comments:
         )
 
         footer = (
-            "Spillman Mobile:\n"
-            + spillman_touch_url
-            + "secure/calldetail?longCallId="
-            + callid
-            + "&type="
-            + self.agency_type
-            + "\n\n"
-            + "Report an Issue:\n"
+            "Report an Issue:\n"
             + "https://help.scifr.net/index.php?a=add&catid=2&custom1="
             + self.agency
             + "&custom2="
