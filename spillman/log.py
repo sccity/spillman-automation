@@ -45,9 +45,6 @@ class URLGetHandler(logging.Handler):
 
 
 def setup_logger(name, log_file, level=loglevel):
-    log_path = os.path.exists("./logs/")
-    if not log_path:
-        os.makedirs("./logs")
     handler = logging.FileHandler(f"./logs/{log_file}.log")
     handler.setFormatter(formatter)
 
