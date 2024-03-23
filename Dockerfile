@@ -18,6 +18,7 @@ RUN addgroup \
 RUN apt-get update \
   && apt-get install -y \
     procps \
+    git \
     nano
 COPY ./requirements.txt /app
 RUN pip install --no-cache-dir -r requirements.txt
@@ -25,5 +26,6 @@ COPY . /app
 RUN mkdir logs
 RUN chown -R sccity:sccity /app && chmod -R 775 /app
 RUN chmod a+x start.sh
+RUN git pull origin prod
 USER sccity
 CMD ["./start.sh"]
