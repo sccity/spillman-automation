@@ -193,13 +193,7 @@ class comments:
             db_gpx_y = "0"
 
         header = (
-            "Preplan Map:\n"
-            + "https://gis.sccity.org/resource/52/display?panel=none&zoom=19&lon="
-            + db_gps_x
-            + "&lat="
-            + db_gps_y
-            + "\n"
-            + "Priority: "
+            "Priority: "
             + response
             + "\n"
             + "Responding Units: "
