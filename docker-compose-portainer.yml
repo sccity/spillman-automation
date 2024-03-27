@@ -12,3 +12,8 @@ services:
       - "/etc/sccity/spillman-automation.env:/app/.env:ro"
     restart: unless-stopped
     user: "1435:1435"
+    deploy:
+      resources:
+        limits:
+          cpus: '0.5'
+          memory: 512M
