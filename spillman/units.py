@@ -73,6 +73,7 @@ class units:
                     and (unit["status"] != "8")
                     and (unit["status"] != "NULL")
                 ]
+                units = sorted(units, key=lambda x: x["unit"])
 
                 if len(units) > 1:
                     units = {each["unit"]: each for each in units}.values()
@@ -208,7 +209,7 @@ class units:
                     and (unit["status"] != "8")
                     and (unit["status"] != "NULL")
                 ]
-
+                units = sorted(units, key=lambda x: x["unit"])
                 if len(units) > 1:
                     units = {each["unit"]: each for each in units}.values()
 
