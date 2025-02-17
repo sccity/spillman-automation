@@ -3,6 +3,7 @@ ENV USER=sccity
 ENV GROUPNAME=$USER
 ENV UID=1435
 ENV GID=1435
+ENV TZ=America/Denver
 WORKDIR /app
 RUN addgroup \
     --gid "$GID" \
@@ -19,7 +20,12 @@ RUN apt-get update \
   && apt-get install -y \
     procps \
     git \
-    nano
+    nano \
+    tzdata \
+  && ln -fs /usr/share/zoneinfo/$TZ /etc/localtime \
+  && dpkg-reconfigure -f noninteractive tzdata \
+  && apt-get clean \
+  && rm -rf /var/lib/apt/lists/*
 COPY ./requirements.txt /app
 RUN pip install --no-cache-dir -r requirements.txt
 COPY . /app
