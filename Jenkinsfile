@@ -59,13 +59,14 @@ pipeline {
         success {
             script {
                 withCredentials([usernamePassword(credentialsId: 'git', usernameVariable: 'GIT_USERNAME', passwordVariable: 'GIT_PASSWORD')]) {
+                    def branchName = env.BRANCH_NAME
                     sh '''
                     commit_hash=$(git rev-parse HEAD | head -c 7)
-                    echo "Branch: ${env.BRANCH_NAME} - Commit Hash: $commit_hash"
+                    echo "Branch: ${branchName} - Commit Hash: $commit_hash"
                     git config --global user.email "jenkins@email.santaclarautah.gov"
                     git config --global user.name "Jenkins"
                     git tag -a "$commit_hash" -m "Automated Build ${commit_hash}"
-                    git push origin ${env.BRANCH_NAME}:refs/tags/$commit_hash
+                    git push origin ${branchName}:refs/tags/$commit_hash
                     '''
                 }
             }
