@@ -82,28 +82,48 @@ spec:
     post {
         success {
             script {
-                container('docker') {
+                container('jnlp') {
                     withCredentials([usernamePassword(credentialsId: 'git', usernameVariable: 'GIT_USERNAME', passwordVariable: 'GIT_PASSWORD')]) {
                         sh '''
-                        commit_hash=$(git rev-parse HEAD | head -c 7)
-                        branch=$(git name-rev --name-only HEAD | cut -d '/' -f 3-)
+                        commit_hash=$(git rev-parse --short HEAD)
+                        branch=$(git rev-parse --abbrev-ref HEAD || echo "detached")
                         echo "Branch: ${branch} - Commit Hash: $commit_hash"
+
                         git config --global user.email "jenkins@email.santaclarautah.gov"
                         git config --global user.name "Jenkins"
+
                         if git rev-parse "$commit_hash" >/dev/null 2>&1; then
                             echo "Tag $commit_hash already exists. Skipping tag creation."
                         else
-                            export GIT_ASKPASS=$(mktemp)
-                            echo '#!/bin/sh' > \$GIT_ASKPASS
-                            echo 'echo "\$GIT_PASSWORD"' >> \$GIT_ASKPASS
-                            chmod +x \$GIT_ASKPASS
-                            git tag -a "$commit_hash" -m "Automated Build ${commit_hash}"
-                            git push origin tag "$commit_hash"
-                            rm -f \$GIT_ASKPASS
+                            echo "Creating and pushing Git tag: $commit_hash"
+
+                            GIT_ASKPASS=$(mktemp)
+                            echo '#!/bin/sh' > $GIT_ASKPASS
+                            echo 'echo "$GIT_PASSWORD"' >> $GIT_ASKPASS
+                            chmod +x $GIT_ASKPASS
+
+                            git tag -a "$commit_hash" -m "Automated Build $commit_hash"
+                            GIT_ASKPASS=$GIT_ASKPASS git push origin tag "$commit_hash"
+
+                            rm -f $GIT_ASKPASS
                         fi
-                        ./build.sh ${commit_hash}
+
+                        echo $commit_hash > commit_hash.txt
                         '''
                     }
+                }
+
+                container('docker') {
+                    sh '''
+                    commit_hash=$(cat commit_hash.txt)
+                    if [ -z "$commit_hash" ]; then
+                        echo "Error: Commit hash file is missing!"
+                        exit 1
+                    fi
+
+                    echo "Using Commit Hash: $commit_hash for Docker build"
+                    ./build $commit_hash
+                    '''
                 }
             }
         }
