@@ -68,15 +68,14 @@ pipeline {
                     if git rev-parse "$commit_hash" >/dev/null 2>&1; then
                         echo "Tag $commit_hash already exists. Skipping tag creation."
                     else
+                        export GIT_ASKPASS=$(mktemp)
+                        echo '#!/bin/sh' > \$GIT_ASKPASS
+                        echo 'echo "\$GIT_PASSWORD"' >> \$GIT_ASKPASS
+                        chmod +x \$GIT_ASKPASS
                         git tag -a "$commit_hash" -m "Automated Build ${commit_hash}"
                         git push origin tag "$commit_hash"
+                        rm -f \$GIT_ASKPASS
                     fi
-                    export GIT_ASKPASS=$(mktemp)
-                    echo '#!/bin/sh' > \$GIT_ASKPASS
-                    echo 'echo "\$GIT_PASSWORD"' >> \$GIT_ASKPASS
-                    chmod +x \$GIT_ASKPASS
-                    git push origin tag $commit_hash
-                    rm -f \$GIT_ASKPASS
                     '''
                 }
             }
