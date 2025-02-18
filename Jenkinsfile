@@ -60,8 +60,8 @@ pipeline {
             script {
                 withCredentials([usernamePassword(credentialsId: 'git', usernameVariable: 'GIT_USERNAME', passwordVariable: 'GIT_PASSWORD')]) {
                     sh '''
-                    hash=$(git rev-parse HEAD | head -c 7)
-                    echo "Commit Hash: $hash"
+                    commit_hash=$(git rev-parse HEAD | head -c 7)
+                    echo "Commit Hash: $commit_hash"
                     git tag -a "$commit_hash" -m "Automated Build ${commit_hash}"
                     git push origin ${env.BRANCH_NAME}:refs/tags/$commit_hash
                     '''
