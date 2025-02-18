@@ -17,6 +17,7 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 import traceback, uuid
+from datetime import datetime, timedelta
 from .database import connect, connect_read
 from .settings import version_data
 from .page import send_page
@@ -128,7 +129,17 @@ class alerts:
     def send_incident(
         self, callid, nature, unit, city, zone, address, gps_x, gps_y, date, comment
     ):
-        if unit is None:
+        now = datetime.now()
+
+        if isinstance(date, str):
+            inc_date = datetime.strptime(date, "%Y-%m-%d %H:%M:%S")
+        else:
+            inc_date = date
+
+        if now > inc_date + timedelta(minutes=10):
+            return
+        
+        elif unit is None:
             return
 
         elif unit == "":
@@ -304,6 +315,16 @@ class alerts:
 
         unit_list = db_unit.replace("'", "")
 
+        now = datetime.now()
+        
+        if isinstance(date, str):
+            inc_date = datetime.strptime(date, "%Y-%m-%d %H:%M:%S")
+        else:
+            inc_date = date
+
+        if now > inc_date + timedelta(minutes=10):
+            return
+
         if (
             (unit_list is None)
             or (unit_list == "")
@@ -416,7 +437,17 @@ class alerts:
     def send(
         agency, callid, nature, unit, city, zone, address, gps_x, gps_y, date, comment
     ):
-        if unit is None:
+        now = datetime.now()
+
+        if isinstance(date, str):
+            inc_date = datetime.strptime(date, "%Y-%m-%d %H:%M:%S")
+        else:
+            inc_date = date
+
+        if now > inc_date + timedelta(minutes=10):
+            return
+    
+        elif unit is None:
             return
 
         elif unit == "":
