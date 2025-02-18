@@ -85,7 +85,7 @@ spec:
                 container('jnlp') {
                     withCredentials([usernamePassword(credentialsId: 'git', usernameVariable: 'GIT_USERNAME', passwordVariable: 'GIT_PASSWORD')]) {
                         sh '''
-                        commit_hash=$(date +"%Y%m%d%H%M%S")_$(git rev-parse --short HEAD)
+                        commit_hash=$(date +"%Y%m%d%H%M%S")-$(git rev-parse --short HEAD)
                         branch=$(git rev-parse --abbrev-ref HEAD || echo "detached")
                         echo "Branch: ${branch} - Commit Hash: $commit_hash"
 
@@ -122,7 +122,7 @@ spec:
                     fi
 
                     echo "Using Commit Hash: $commit_hash for Docker build"
-                    chmod +x build.sh
+                    ls -la
                     ./build.sh $commit_hash
                     '''
                 }
