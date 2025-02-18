@@ -65,7 +65,12 @@ pipeline {
                     echo "Branch: ${branch} - Commit Hash: $commit_hash"
                     git config --global user.email "jenkins@email.santaclarautah.gov"
                     git config --global user.name "Jenkins"
-                    git tag -a "$commit_hash" -m "Automated Build ${commit_hash}"
+                    if git rev-parse "$commit_hash" >/dev/null 2>&1; then
+                        echo "Tag $commit_hash already exists. Skipping tag creation."
+                    else
+                        git tag -a "$commit_hash" -m "Automated Build ${commit_hash}"
+                        git push origin tag "$commit_hash"
+                    fi
                     export GIT_ASKPASS=$(mktemp)
                     echo '#!/bin/sh' > \$GIT_ASKPASS
                     echo 'echo "\$GIT_PASSWORD"' >> \$GIT_ASKPASS
