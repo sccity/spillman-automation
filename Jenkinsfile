@@ -58,7 +58,6 @@ pipeline {
     post {
         success {
             script {
-                env.GIT_TERMINAL_PROMPT = '0'
                 withCredentials([usernamePassword(credentialsId: 'git', usernameVariable: 'GIT_USERNAME', passwordVariable: 'GIT_PASSWORD')]) {
                     sh '''
                     commit_hash=$(git rev-parse HEAD | head -c 7)
