@@ -4,12 +4,26 @@ pipeline {
             label "${env.JOB_NAME}-${BUILD_NUMBER}"
             containerTemplate {
                 name 'jnlp'
-                image 'sccity/jenkins-agent-python:0.0.1'
+                image 'sccity/jenkins-agent-python:0.0.3'
             }
         }
     }
 
     stages {
+        stage('Database') {
+            steps {
+                container('jnlp') {
+                    sh '''
+                    echo "development" | su -c "/etc/init.d/mariadb start" root
+                    until mysqladmin ping --silent; do sleep 3; done
+                    echo "development" | su -c "mysql -e \"ALTER USER 'root'@'localhost' IDENTIFIED BY '';\"" root
+                    echo "development" | su -c "mysql -e 'FLUSH PRIVILEGES;'" root
+                    echo "development" | su -c "mysql -e 'CREATE DATABASE spillman_automation;'" root
+                    '''
+                }
+            }
+        }
+
         stage('Build') {
             steps {
                 container('jnlp') {
@@ -18,10 +32,16 @@ pipeline {
                     . venv/bin/activate
                     pip3.10 install -r requirements.txt
                     cp .env.example .env
+                    sed -i 's/^DB_HOST=.*/DB_HOST=localhost/' .env
+                    sed -i 's/^DB_HOST_RO=.*/DB_HOST_RO=localhost/' .env
+                    sed -i 's/^DB_SCHEMA=.*/DB_SCHEMA=spillman_automation/' .env
+                    sed -i 's/^DB_USERNAME=.*/DB_USERNAME=root/' .env
+                    sed -i 's/^DB_PASSWORD=.*/DB_PASSWORD=/' .env
                     '''
                 }
             }
         }
+        
         stage('Test') {
             steps {
                 container('jnlp') {
