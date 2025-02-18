@@ -3,32 +3,32 @@ pipeline {
         kubernetes {
             label "${env.JOB_NAME}-${BUILD_NUMBER}"
             yaml '''
-            apiVersion: v1
-            kind: Pod
-            spec:
-            containers:
-                - name: jnlp
-                image: sccity/jenkins-agent-python:0.0.4
-                volumeMounts:
-                    - name: workspace-volume
-                    mountPath: /home/jenkins/agent
+apiVersion: v1
+kind: Pod
+spec:
+  containers:
+    - name: jnlp
+      image: sccity/jenkins-agent-python:0.0.4
+      volumeMounts:
+        - name: workspace-volume
+          mountPath: /home/jenkins/agent
 
-                - name: docker
-                image: docker:24.0.6-dind
-                securityContext:
-                    privileged: true
-                command: ["dockerd-entrypoint.sh"]
-                args: ["--host=tcp://0.0.0.0:2375", "--host=unix:///var/run/docker.sock"]
-                volumeMounts:
-                    - name: docker-lib
-                    mountPath: /var/lib/docker
+    - name: docker
+      image: docker:24.0.6-dind
+      securityContext:
+        privileged: true
+      command: ["dockerd-entrypoint.sh"]
+      args: ["--host=tcp://0.0.0.0:2375", "--host=unix:///var/run/docker.sock"]
+      volumeMounts:
+        - name: docker-lib
+          mountPath: /var/lib/docker
 
-            volumes:
-                - name: workspace-volume
-                emptyDir: {}
+  volumes:
+    - name: workspace-volume
+      emptyDir: {}
 
-                - name: docker-lib
-                emptyDir: {}
+    - name: docker-lib
+      emptyDir: {}
             '''
         }
     }
