@@ -122,8 +122,7 @@ spec:
                     fi
 
                     echo "Using Commit Hash: $commit_hash for Docker build"
-                    ls -la
-                    ./build.sh $commit_hash
+                    docker build --platform linux/x86_64 -t sccity/spillman-automation:$commit_hash --push .
                     '''
                 }
             }
