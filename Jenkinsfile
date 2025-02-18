@@ -56,6 +56,26 @@ pipeline {
     }
 
     post {
+        success {
+            script {
+                withCredentials([usernamePassword(credentialsId: 'git', usernameVariable: 'GIT_USERNAME', passwordVariable: 'GIT_PASSWORD')]) {
+                    sh '''
+                    commit_hash=$(git rev-parse HEAD | head -c 7)
+                    branch=$(git name-rev --name-only HEAD | cut -d '/' -f 3-)
+                    echo "Branch: ${branch} - Commit Hash: $commit_hash"
+                    git config --global user.email "jenkins@email.santaclarautah.gov"
+                    git config --global user.name "Jenkins"
+                    git tag -a "$commit_hash" -m "Automated Build ${commit_hash}"
+                    export GIT_ASKPASS=$(mktemp)
+                    echo '#!/bin/sh' > \$GIT_ASKPASS
+                    echo 'echo "\$GIT_PASSWORD"' >> \$GIT_ASKPASS
+                    chmod +x \$GIT_ASKPASS
+                    git push origin tag $commit_hash
+                    rm -f \$GIT_ASKPASS
+                    '''
+                }
+            }
+        }
         failure {
             script {
                 def logLines = currentBuild.rawBuild.getLog(100).join("\n")
