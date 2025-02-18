@@ -62,6 +62,8 @@ pipeline {
                     sh '''
                     commit_hash=$(git rev-parse HEAD | head -c 7)
                     echo "Commit Hash: $commit_hash"
+                    git config --global user.email "jenkins@email.santaclarautah.gov"
+                    git config --global user.name "Jenkins"
                     git tag -a "$commit_hash" -m "Automated Build ${commit_hash}"
                     git push origin ${env.BRANCH_NAME}:refs/tags/$commit_hash
                     '''
