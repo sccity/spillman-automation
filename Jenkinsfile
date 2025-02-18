@@ -92,7 +92,7 @@ spec:
                         git config --global user.email "jenkins@email.santaclarautah.gov"
                         git config --global user.name "Jenkins"
 
-                        if git rev-parse "$commit_hash" >/dev/null 2>&1; then
+                        if git ls-remote --tags origin | grep -q "refs/tags/$commit_hash"; then
                             echo "Tag $commit_hash already exists. Skipping tag creation."
                         else
                             echo "Creating and pushing Git tag: $commit_hash"
@@ -122,7 +122,7 @@ spec:
                     fi
 
                     echo "Using Commit Hash: $commit_hash for Docker build"
-                    ./build $commit_hash
+                    ./build.sh $commit_hash
                     '''
                 }
             }
