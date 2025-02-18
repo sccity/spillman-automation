@@ -14,7 +14,7 @@ pipeline {
                     mountPath: /home/jenkins/agent
 
                 - name: docker
-                image: docker:27.5.1-dind
+                image: docker:24.0.6-dind
                 securityContext:
                     privileged: true
                 command: ["dockerd-entrypoint.sh"]
