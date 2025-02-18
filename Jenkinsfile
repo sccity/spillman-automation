@@ -16,9 +16,11 @@ pipeline {
                     sh '''
                     echo "development" | su -c "/etc/init.d/mariadb start" root
                     until mysqladmin ping --silent; do sleep 3; done
-                    echo "development" | su -c "mysql -e \"ALTER USER 'root'@'localhost' IDENTIFIED BY '';\"" root
-                    echo "development" | su -c "mysql -e 'FLUSH PRIVILEGES;'" root
-                    echo "development" | su -c "mysql -e 'CREATE DATABASE spillman_automation;'" root
+                    echo "development" | su -c "mysql -e \"
+                        ALTER USER 'root'@'localhost' IDENTIFIED BY '';
+                        FLUSH PRIVILEGES;
+                        CREATE DATABASE spillman_automation;
+                    \"" root
                     '''
                 }
             }
@@ -41,7 +43,7 @@ pipeline {
                 }
             }
         }
-        
+
         stage('Test') {
             steps {
                 container('jnlp') {
