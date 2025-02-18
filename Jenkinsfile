@@ -15,7 +15,7 @@ pipeline {
                 container('jnlp') {
                     sh '''
                     python3.10 -m venv venv
-                    . venv/bin/activate
+                    source venv/bin/activate
                     pip3.10 install -r requirements.txt
                     cp .env.example .env
                     '''
@@ -26,6 +26,7 @@ pipeline {
             steps {
                 container('jnlp') {
                     sh '''
+                    source venv/bin/activate
                     python3.10 app.py --check-config
                     '''
                 }
