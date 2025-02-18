@@ -66,8 +66,12 @@ pipeline {
                     git config --global user.email "jenkins@email.santaclarautah.gov"
                     git config --global user.name "Jenkins"
                     git tag -a "$commit_hash" -m "Automated Build ${commit_hash}"
-                    echo "protocol=https\nhost=github.com\nusername=$GIT_USERNAME\npassword=$GIT_PASSWORD" | git credential approve
+                    export GIT_ASKPASS=$(mktemp)
+                    echo '#!/bin/sh' > \$GIT_ASKPASS
+                    echo 'echo "\$GIT_PASSWORD"' >> \$GIT_ASKPASS
+                    chmod +x \$GIT_ASKPASS
                     git push origin tag $commit_hash
+                    rm -f \$GIT_ASKPASS
                     '''
                 }
             }
