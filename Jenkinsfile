@@ -2,10 +2,34 @@ pipeline {
     agent {
         kubernetes {
             label "${env.JOB_NAME}-${BUILD_NUMBER}"
-            containerTemplate {
-                name 'jnlp'
-                image 'sccity/jenkins-agent-python:0.0.3'
-            }
+            yaml '''
+            apiVersion: v1
+            kind: Pod
+            spec:
+            containers:
+                - name: jnlp
+                image: sccity/jenkins-agent-python:0.0.4
+                volumeMounts:
+                    - name: workspace-volume
+                    mountPath: /home/jenkins/agent
+
+                - name: docker
+                image: docker:27.5.1-dind
+                securityContext:
+                    privileged: true
+                command: ["dockerd-entrypoint.sh"]
+                args: ["--host=tcp://0.0.0.0:2375", "--host=unix:///var/run/docker.sock"]
+                volumeMounts:
+                    - name: docker-lib
+                    mountPath: /var/lib/docker
+
+            volumes:
+                - name: workspace-volume
+                emptyDir: {}
+
+                - name: docker-lib
+                emptyDir: {}
+            '''
         }
     }
 
@@ -58,31 +82,34 @@ pipeline {
     post {
         success {
             script {
-                withCredentials([usernamePassword(credentialsId: 'git', usernameVariable: 'GIT_USERNAME', passwordVariable: 'GIT_PASSWORD')]) {
-                    sh '''
-                    commit_hash=$(git rev-parse HEAD | head -c 7)
-                    branch=$(git name-rev --name-only HEAD | cut -d '/' -f 3-)
-                    echo "Branch: ${branch} - Commit Hash: $commit_hash"
-                    git config --global user.email "jenkins@email.santaclarautah.gov"
-                    git config --global user.name "Jenkins"
-                    if git rev-parse "$commit_hash" >/dev/null 2>&1; then
-                        echo "Tag $commit_hash already exists. Skipping tag creation."
-                    else
-                        export GIT_ASKPASS=$(mktemp)
-                        echo '#!/bin/sh' > \$GIT_ASKPASS
-                        echo 'echo "\$GIT_PASSWORD"' >> \$GIT_ASKPASS
-                        chmod +x \$GIT_ASKPASS
-                        git tag -a "$commit_hash" -m "Automated Build ${commit_hash}"
-                        git push origin tag "$commit_hash"
-                        rm -f \$GIT_ASKPASS
-                    fi
-                    '''
+                container('docker') {
+                    withCredentials([usernamePassword(credentialsId: 'git', usernameVariable: 'GIT_USERNAME', passwordVariable: 'GIT_PASSWORD')]) {
+                        sh '''
+                        commit_hash=$(git rev-parse HEAD | head -c 7)
+                        branch=$(git name-rev --name-only HEAD | cut -d '/' -f 3-)
+                        echo "Branch: ${branch} - Commit Hash: $commit_hash"
+                        git config --global user.email "jenkins@email.santaclarautah.gov"
+                        git config --global user.name "Jenkins"
+                        if git rev-parse "$commit_hash" >/dev/null 2>&1; then
+                            echo "Tag $commit_hash already exists. Skipping tag creation."
+                        else
+                            export GIT_ASKPASS=$(mktemp)
+                            echo '#!/bin/sh' > \$GIT_ASKPASS
+                            echo 'echo "\$GIT_PASSWORD"' >> \$GIT_ASKPASS
+                            chmod +x \$GIT_ASKPASS
+                            git tag -a "$commit_hash" -m "Automated Build ${commit_hash}"
+                            git push origin tag "$commit_hash"
+                            rm -f \$GIT_ASKPASS
+                        fi
+                        ./build.sh ${commit_hash}
+                        '''
+                    }
                 }
             }
         }
         fixed {
             script {
-                def logLines = currentBuild.rawBuild.getLog(100).join("\n")
+                def logLines = currentBuild.rawBuild.getLog(100).join('\n')
                 emailext(
                     to: 'lhaynie@santaclarautah.gov, rlevsey@santaclarautah.gov',
                     subject: "Build Fixed: ${env.JOB_NAME} - Build #${env.BUILD_NUMBER}",
@@ -100,7 +127,7 @@ pipeline {
         }
         failure {
             script {
-                def logLines = currentBuild.rawBuild.getLog(100).join("\n")
+                def logLines = currentBuild.rawBuild.getLog(100).join('\n')
                 emailext(
                     to: 'lhaynie@santaclarautah.gov, rlevsey@santaclarautah.gov',
                     subject: "Build Failed: ${env.JOB_NAME} - Build #${env.BUILD_NUMBER}",
