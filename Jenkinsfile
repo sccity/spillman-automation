@@ -65,11 +65,9 @@ pipeline {
                     echo "Branch: ${branch} - Commit Hash: $commit_hash"
                     git config --global user.email "jenkins@email.santaclarautah.gov"
                     git config --global user.name "Jenkins"
-                    echo "https://$GIT_USERNAME:$GIT_PASSWORD@github.com" > ~/.git-credentials
-                    git config credential.helper 'store'
                     git tag -a "$commit_hash" -m "Automated Build ${commit_hash}"
+                    echo "protocol=https\nhost=github.com\nusername=$GIT_USERNAME\npassword=$GIT_PASSWORD" | git credential approve
                     git push origin tag $commit_hash
-                    rm -f ~/.git-credentials
                     '''
                 }
             }
