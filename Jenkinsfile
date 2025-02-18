@@ -59,8 +59,8 @@ pipeline {
         success {
             script {
                 withCredentials([usernamePassword(credentialsId: 'git', usernameVariable: 'GIT_USERNAME', passwordVariable: 'GIT_PASSWORD')]) {
-                    def hash = sh(script: 'git rev-parse HEAD | head -c 7', returnStdout: true)
                     sh '''
+                    hash=$(git rev-parse HEAD | head -c 7)
                     echo "Commit Hash: $hash"
                     git tag -a "$commit_hash" -m "Automated Build ${commit_hash}"
                     git push origin ${env.BRANCH_NAME}:refs/tags/$commit_hash
