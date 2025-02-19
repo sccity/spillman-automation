@@ -25,7 +25,7 @@ withCredentials([file(credentialsId: 'kubeconfig', variable: 'KUBECONFIG')]) {
     tmp2="{\"containers\": [{\"name\": \"$container\", \"image\": \"$commit_hash-$branch\"}]}}}"
     echo $tmp1$tmp2 > tmp.json
 
-    ./kubectl patch statefulset $STATEFULSET --patch-file tmp.json
+    ./kubectl patch statefulset $STATEFULSET --patch-file tmp.json -n $namespace
 
     if [ $? -ne 0 ]; then
         echo "Error: Kubernetes Update Failed!"
