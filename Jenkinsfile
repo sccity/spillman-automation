@@ -8,7 +8,7 @@ kind: Pod
 spec:
   containers:
     - name: jnlp
-      image: sccity/jenkins-agent-python:0.0.4
+      image: sccity/jenkins-agent-python:0.0.6
       volumeMounts:
         - name: workspace-volume
           mountPath: /home/jenkins/agent
@@ -34,35 +34,26 @@ spec:
     }
 
     stages {
-        stage('Database') {
+        stage('Initialize') {
             steps {
                 container('jnlp') {
-                    sh '''
-                    echo "development" | su -c "/etc/init.d/mariadb start" root
-                    until mysqladmin ping --silent; do sleep 3; done
-                    echo "ALTER USER 'root'@'localhost' IDENTIFIED BY '';" > setup.sql
-                    echo "FLUSH PRIVILEGES;" >> setup.sql
-                    echo "CREATE DATABASE spillman_automation;" >> setup.sql
-                    echo "development" | su -c "mysql -u root < setup.sql" root
-                    '''
+                    load './jenkins/01_initialize.groovy'
                 }
             }
         }
 
-        stage('Build') {
+        stage('Configure') {
             steps {
                 container('jnlp') {
-                    sh '''
-                    python3.10 -m venv venv
-                    . venv/bin/activate
-                    pip3.10 install -r requirements.txt
-                    cp .env.example .env
-                    sed -i 's/^DB_HOST=.*/DB_HOST=localhost/' .env
-                    sed -i 's/^DB_HOST_RO=.*/DB_HOST_RO=localhost/' .env
-                    sed -i 's/^DB_SCHEMA=.*/DB_SCHEMA=spillman_automation/' .env
-                    sed -i 's/^DB_USER=.*/DB_USER=root/' .env
-                    sed -i 's/^DB_PASSWORD=.*/DB_PASSWORD=/' .env
-                    '''
+                    load './jenkins/02_configure.groovy'
+                }
+            }
+        }
+
+        stage('Prepare') {
+            steps {
+                container('jnlp') {
+                    load './jenkins/03_prepare.groovy'
                 }
             }
         }
@@ -70,10 +61,7 @@ spec:
         stage('Test') {
             steps {
                 container('jnlp') {
-                    sh '''
-                    . venv/bin/activate
-                    python3.10 app.py --check-config
-                    '''
+                    load './jenkins/04_test.groovy'
                 }
             }
         }
@@ -83,88 +71,23 @@ spec:
         success {
             script {
                 container('jnlp') {
-                    withCredentials([usernamePassword(credentialsId: 'git', usernameVariable: 'GIT_USERNAME', passwordVariable: 'GIT_PASSWORD')]) {
-                        sh '''
-                        commit_hash=$(date +"%Y%m%d%H%M%S")-$(git rev-parse --short HEAD)
-                        branch=$(git rev-parse --abbrev-ref HEAD || echo "detached")
-                        echo "Branch: ${branch} - Commit Hash: $commit_hash"
-
-                        git config --global user.email "jenkins@email.santaclarautah.gov"
-                        git config --global user.name "Jenkins"
-
-                        if git ls-remote --tags origin | grep -q "refs/tags/$commit_hash"; then
-                            echo "Tag $commit_hash already exists. Skipping tag creation."
-                        else
-                            echo "Creating and pushing Git tag: $commit_hash"
-
-                            GIT_ASKPASS=$(mktemp)
-                            echo '#!/bin/sh' > $GIT_ASKPASS
-                            echo 'echo "$GIT_PASSWORD"' >> $GIT_ASKPASS
-                            chmod +x $GIT_ASKPASS
-
-                            git tag -a "$commit_hash" -m "Automated Build $commit_hash"
-                            GIT_ASKPASS=$GIT_ASKPASS git push origin tag "$commit_hash"
-
-                            rm -f $GIT_ASKPASS
-                        fi
-
-                        echo $commit_hash > commit_hash.txt
-                        '''
-                    }
+                    load './jenkins/tag.groovy'
                 }
 
                 container('docker') {
-                    withCredentials([usernamePassword(credentialsId: 'docker-hub', usernameVariable: 'DOCKER_USERNAME', passwordVariable: 'DOCKER_PASSWORD')]) {
-                        sh '''
-                        commit_hash=$(cat commit_hash.txt)
-                        if [ -z "$commit_hash" ]; then
-                            echo "Error: Commit hash file is missing!"
-                            exit 1
-                        fi
+                    load './jenkins/image.groovy'
+                }
 
-                        echo "Using Commit Hash: $commit_hash for Docker build"
-                        echo "$DOCKER_PASSWORD" | docker login -u "$DOCKER_USERNAME" --password-stdin
-                        docker build --platform linux/x86_64 -t sccity/spillman-automation:$commit_hash --push .
-                        '''
-                    }
+                container('jnlp') {
+                    load './jenkins/deploy.groovy'
                 }
             }
         }
         fixed {
-            script {
-                def logLines = currentBuild.rawBuild.getLog(100).join('\n')
-                emailext(
-                    to: 'lhaynie@santaclarautah.gov, rlevsey@santaclarautah.gov',
-                    subject: "Build Fixed: ${env.JOB_NAME} - Build #${env.BUILD_NUMBER}",
-                    body: """
-                        <strong>Project:</strong> ${env.JOB_NAME}<br>
-                        <strong>Build Number:</strong> ${env.BUILD_NUMBER}<br>
-                        <strong>Result:</strong> ${currentBuild.currentResult}<br>
-                        <strong>URL:</strong> <a href="${env.BUILD_URL}">${env.BUILD_URL}</a><br><br>
-                        <strong>Last 100 lines of build log:</strong>
-                        <pre>${logLines}</pre>
-                        """,
-                    mimeType: 'text/html'
-                )
-            }
+            load './jenkins/fixed.groovy'
         }
         failure {
-            script {
-                def logLines = currentBuild.rawBuild.getLog(100).join('\n')
-                emailext(
-                    to: 'lhaynie@santaclarautah.gov, rlevsey@santaclarautah.gov',
-                    subject: "Build Failed: ${env.JOB_NAME} - Build #${env.BUILD_NUMBER}",
-                    body: """
-                        <strong>Project:</strong> ${env.JOB_NAME}<br>
-                        <strong>Build Number:</strong> ${env.BUILD_NUMBER}<br>
-                        <strong>Result:</strong> ${currentBuild.currentResult}<br>
-                        <strong>URL:</strong> <a href="${env.BUILD_URL}">${env.BUILD_URL}</a><br><br>
-                        <strong>Last 100 lines of build log:</strong>
-                        <pre>${logLines}</pre>
-                        """,
-                    mimeType: 'text/html'
-                )
-            }
+            load './jenkins/failure.groovy'
         }
     }
 }
